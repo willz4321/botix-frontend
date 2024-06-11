@@ -39,6 +39,8 @@ const Login = () => {
       localStorage.setItem("userName", user.nombre);
       localStorage.setItem("company_id", user.company_id);
       localStorage.setItem("department_id", user.department_id);
+      
+      navigate('/chats'); // Redirige al usuario después de iniciar sesión
     } catch (error) {
       if (error.response) {
         setError("Error al iniciar sesión. Intente nuevamente.");

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './CollapsibleSidebar.css';
-import { List, ChatLeftDots, People, Person, Funnel, FileBarGraph, Search, Megaphone, CurrencyDollar, Gear, Building, BoxArrowRight, BoxArrowLeft } from 'react-bootstrap-icons';
+import { List, ChatLeftDots, People, Person, Funnel, FileBarGraph, Search, Megaphone, CurrencyDollar, Gear, Building, BoxArrowLeft } from 'react-bootstrap-icons';
 import axios from 'axios';
 
 const CollapsibleSidebar = ({ onSelect, isCollapsed, onToggle }) => {

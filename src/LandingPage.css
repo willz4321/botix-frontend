@@ -54,8 +54,9 @@
     border: none;
     color: white;
     position: absolute;
+    font-size: 1.4vw;
     top: 80%;
-    left: 26%;
+    left: 30%;
     transform: translate(-50%, -50%);
     width: fit-content;
     padding: 10px 20px;
@@ -76,3 +77,13 @@
     max-width: 100%;
     height: auto;
 }
+
+
+.img-full-width {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 0;
+  }
+  
+  

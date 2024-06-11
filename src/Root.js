@@ -4,18 +4,22 @@ import App from './App';
 import Login from './Login';
 import Register from './Register';
 import LandingPage from './LandingPage';
-
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
-};
+import { PrivateRoute, PublicRoute } from './PrivateRoute';
 
 const Root = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
+        <Route path="/register" element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        } />
         <Route path="/" element={<LandingPage />} />
         <Route
           path="/*"

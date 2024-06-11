@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import CollapsibleSidebar from './CollapsibleSidebar';
 import Sidebar from './Sidebar';
 import ChatWindow from './ChatWindow';
@@ -16,6 +16,7 @@ import CreateCampaign from './CreateCampaign';
 import { ConversationsProvider } from './ConversationsContext';
 import io from 'socket.io-client';
 import './App.css';
+import { PrivateRoute, PublicRoute } from './PrivateRoute';
 
 function App() {
   const [socket, setSocket] = useState(null);
@@ -24,16 +25,14 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [selectedSection, setSelectedSection] = useState('chats');
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const id_usuario = localStorage.getItem('user_id');
 
-    if (!token || !id_usuario) {
-      navigate('/login');
-      return;
-    }
+    console.log('Token and user ID from localStorage:', token, id_usuario);
+
+    if (!token || !id_usuario) return;
 
     const socket = io(`${process.env.REACT_APP_API_URL}`, {
       query: {
@@ -44,11 +43,13 @@ function App() {
     });
 
     socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
       setIsConnected(true);
       setSocket(socket);
     });
 
     socket.on('disconnect', () => {
+      console.log('Socket disconnected');
       setIsConnected(false);
     });
 
@@ -57,7 +58,7 @@ function App() {
       socket.off('disconnect');
       socket.close();
     };
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     const handleFirstUserInteraction = () => {
@@ -84,13 +85,6 @@ function App() {
     navigate(`/${section}`);
   };
 
-  useEffect(() => {
-    if (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/') {
-      return;
-    }
-    navigate('/chats');
-  }, [location.pathname, navigate]);
-
   return (
     <ConversationsProvider socket={socket} isConnected={isConnected} userHasInteracted={userHasInteracted}>
       <Container fluid>
@@ -105,28 +99,35 @@ function App() {
           <Col className={`px-0 ${isSidebarCollapsed ? 'content-collapsed' : 'content-expanded'}`}>
             <Row className="renderContent">
               <Routes>
-                <Route path="/chats" element={
-                  <>
-                    <Col className="px-0 conversations_bar" style={{ flexBasis: '25%' }}>
-                      <Sidebar />
-                    </Col>
-                    <Col className="px-0 wallpaper_messages" style={{ flexBasis: '75%' }}>
-                      <ChatWindow socket={socket} />
-                    </Col>
-                  </>
+                <Route path="/login" element={
+                  <PublicRoute>
+                    <div>Login Component</div> {/* Replace with your Login component */}
+                  </PublicRoute>
                 } />
-                <Route path="/contacts" element={<ContactsTable />} />
-                <Route path="/users" element={<UsersTable />} />
-                <Route path="/funnel" element={<FunnelComponent />} />
-                <Route path="/statistics" element={<div>statistics</div>} />
-                <Route path="/inspection" element={<div>Inspection</div>} />
-                <Route path="/campaigns" element={<Campaigns />} />
-                <Route path="/consumption" element={<div>Consumption</div>} />
-                <Route path="/settings" element={<div>Settings</div>} />
-                <Route path="/company" element={<CompanyInfo />} />
-                <Route path="/create-template" element={<CreateTemplate />} />
-                <Route path="/create-campaign" element={<CreateCampaign />} />
-                <Route path="*" element={<CompanyInfo />} />
+                <Route path="/chats" element={
+                  <PrivateRoute>
+                    <>
+                      <Col className="px-0 conversations_bar" style={{ flexBasis: '25%' }}>
+                        <Sidebar />
+                      </Col>
+                      <Col className="px-0 wallpaper_messages" style={{ flexBasis: '75%' }}>
+                        <ChatWindow socket={socket} />
+                      </Col>
+                    </>
+                  </PrivateRoute>
+                } />
+                <Route path="/contacts" element={<PrivateRoute><ContactsTable /></PrivateRoute>} />
+                <Route path="/users" element={<PrivateRoute><UsersTable /></PrivateRoute>} />
+                <Route path="/funnel" element={<PrivateRoute><FunnelComponent /></PrivateRoute>} />
+                <Route path="/statistics" element={<PrivateRoute><div>statistics</div></PrivateRoute>} />
+                <Route path="/inspection" element={<PrivateRoute><div>Inspection</div></PrivateRoute>} />
+                <Route path="/campaigns" element={<PrivateRoute><Campaigns /></PrivateRoute>} />
+                <Route path="/consumption" element={<PrivateRoute><div>Consumption</div></PrivateRoute>} />
+                <Route path="/settings" element={<PrivateRoute><div>Settings</div></PrivateRoute>} />
+                <Route path="/company" element={<PrivateRoute><CompanyInfo /></PrivateRoute>} />
+                <Route path="/create-template" element={<PrivateRoute><CreateTemplate /></PrivateRoute>} />
+                <Route path="/create-campaign" element={<PrivateRoute><CreateCampaign /></PrivateRoute>} />
+                <Route path="*" element={<PrivateRoute><CompanyInfo /></PrivateRoute>} />
               </Routes>
             </Row>
           </Col>
