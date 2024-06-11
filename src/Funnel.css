@@ -1,0 +1,136 @@
+.funnel-container {
+    display: flex;
+    flex-direction: column;
+    overflow-x: auto;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .funnel-header {
+    flex-shrink: 0;
+  }
+  
+  .funnel-columns {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .funnel-column {
+    flex: 1;
+    border: 1px solid #ccc;
+    min-width: 300px;
+    overflow-y: auto;
+    height: 80vh;
+    position: relative;
+  }
+  
+  .funnel-column-header {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  
+  .funnel-column::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .funnel-column::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+  
+  .funnel-column::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .funnel-column::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  .list-group-item {
+    display: flex;
+    align-items: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-right: 15px;
+    padding-left: 15px;
+    position: relative; 
+    border: none;
+    border-radius: 0;
+    transition: background-color 0.2s;
+  }
+
+  .list-group-item:hover {
+    background-color: #f2f2f2;
+  }
+
+  .rounded-circle{
+    fill: rgb(192, 192, 192);
+  }
+
+  .list-group-item .rounded-circle {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+  }
+
+  .list-group-item strong {
+    font-size: 16px;
+    color: #000;
+    flex-grow: 1; 
+  }
+
+  .list-group-item .text-muted {
+    flex-grow: 1;
+    font-size: 14px;
+  }
+
+  .list-group-item .badge-pill {
+    position: absolute;
+  }
+
+  .list-group-item small {
+    position: absolute;
+    right: 15px;
+    bottom: 1px; 
+    font-size: 12px;
+    color: #666;
+  }
+
+  .badge-primary {
+    background-color: #25D366;
+    position: absolute;
+    right: 7px; 
+    top: 30px; 
+    font-size: 0.7rem;
+    border-radius: 50%;
+  }
+
+  .badge-label {
+    position: absolute;
+    right: 15px;
+    top: 5px; 
+  }
+
+  .funnel-graph {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .funnel-graph-segment {
+    height: 60px;
+    margin-bottom: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+  }
+  

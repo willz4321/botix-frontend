@@ -1,0 +1,26 @@
+.phase-bar {
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 2px solid;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .phase-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .phase-name {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .phase-color {
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+  }
