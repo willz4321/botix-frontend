@@ -86,7 +86,8 @@ const TemplateModal = ({ show, handleClose, conversation, contact }) => {
       const payload = {
         conversation,
         template: selectedTemplate,
-        parameters
+        parameters,
+        company_id: companyId
       };
   
       console.log('Sending payload:', payload);
