@@ -136,7 +136,6 @@ const Register = () => {
       </div>
       <div className="right-side">
         <img src="/icono WA.png" alt="Logo" className="logo" />
-        {error && <p className="error-message">{error}</p>}
         <form ref={formRef} onSubmit={handleSubmit} className="register-form">
           {step === 1 && (
             <>
@@ -177,10 +176,6 @@ const Register = () => {
                 Teléfono de la Empresa: <span className="required">*</span>
                 <input type="text" name="phone" value={empresa.phone} onChange={handleInputChange} required />
               </label>
-              <label>
-                Logo de la Empresa:
-                <input type="text" name="logo" value={empresa.logo} onChange={handleInputChange} />
-              </label>
               <button type="button" onClick={handleNextStep} className="btn btn-secondary">Siguiente</button>
             </>
           )}
@@ -208,10 +203,6 @@ const Register = () => {
                 <input type="email" value={email} onChange={(e) => {setEmail(e.target.value); setError("");}} required />
               </label>
               <label>
-                Link de la foto:
-                <input type="text" value={linkFoto} onChange={(e) => setLinkFoto(e.target.value)} />
-              </label>
-              <label>
                 Rol: <span className="required">*</span>
                 <input type="text" value={rol} onChange={(e) => {setRol(e.target.value); setError("");}} required />
               </label>
@@ -236,11 +227,18 @@ const Register = () => {
               <label>
                 <input type="radio" name="plan" value="pro" checked={plan === "pro"} onChange={(e) => setPlan(e.target.value)} required /> Pro
               </label>
-              <button type="button" onClick={handlePreviousStep} className="btn btn-secondary">Atrás</button>
+              <button type="button" onClick={handlePreviousStep} className="btn btn-secondary mb-2">Atrás</button>
               <button type="submit" className="btn btn-primary">Registrarse</button>
             </>
           )}
+          
+          {error && (
+            <div className="alert alert-danger mt-3" role="alert">
+              {error}
+            </div>
+          )}
         </form>
+
         <Link to="/login" className="register-link">¿Ya tienes cuenta? Inicia sesión</Link>
         <div className="social-login-container">
           <button onClick={() => window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`} className="social-login-button google-button">
