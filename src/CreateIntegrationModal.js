@@ -3,12 +3,14 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 import { Whatsapp, Instagram, Facebook, Globe, Telegram } from 'react-bootstrap-icons';
 
-const CreateIntegrationModal = ({ show, onHide, licenseId, onIntegrationCreated }) => {
+const CreateIntegrationModal = ({ show, onHide, licenseId, companyId, onIntegrationCreated }) => {
   const [formData, setFormData] = useState({
     type: '',
     name: '',
     WHATSAPP_API_TOKEN: '',
-    WHATSAPP_PHONE_NUMBER_ID: ''
+    WHATSAPP_PHONE_NUMBER_ID: '',
+    WHATSAPP_APP_ID: '',
+    WHATSAPP_BUSINESS_ACCOUNT_ID: ''
   });
 
   const handleChange = (e) => {
@@ -25,7 +27,8 @@ const CreateIntegrationModal = ({ show, onHide, licenseId, onIntegrationCreated 
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/integrations`, {
         ...formData,
-        license_id: licenseId
+        license_id: licenseId,
+        company_id: companyId
       });
       onIntegrationCreated(response.data);
       onHide();
@@ -86,6 +89,26 @@ const CreateIntegrationModal = ({ show, onHide, licenseId, onIntegrationCreated 
                   type="text"
                   name="WHATSAPP_PHONE_NUMBER_ID"
                   value={formData.WHATSAPP_PHONE_NUMBER_ID}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formWhatsappAppId">
+                <Form.Label>WhatsApp App ID</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="WHATSAPP_APP_ID"
+                  value={formData.WHATSAPP_APP_ID}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formWhatsappBusinessAccountId">
+                <Form.Label>WhatsApp Business Account ID</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="WHATSAPP_BUSINESS_ACCOUNT_ID"
+                  value={formData.WHATSAPP_BUSINESS_ACCOUNT_ID}
                   onChange={handleChange}
                   required
                 />

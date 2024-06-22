@@ -707,6 +707,7 @@ const CompanyInfo = () => {
         show={showCreateIntegrationModal}
         onHide={() => setShowCreateIntegrationModal(false)}
         licenseId={license.id}
+        companyId={companyId}
         onIntegrationCreated={(newIntegration) => setIntegrations([...integrations, newIntegration])}
       />
 
