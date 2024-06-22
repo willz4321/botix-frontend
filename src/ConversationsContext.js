@@ -282,6 +282,13 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
       console.log('Nuevo mensaje recibido:', newMessage);
   
       const userId = localStorage.getItem("user_id");
+      const userCompanyId = localStorage.getItem("company_id");
+  
+      // Validar si el mensaje pertenece a la empresa del usuario conectado
+      if (String(newMessage.company_id) !== userCompanyId) {
+        console.log('Mensaje recibido de otra empresa. Ignorando.');
+        return;
+      }else{
   
       const isResponsibleOrAdmin = String(newMessage.responsibleUserId) === userId || userPrivileges.includes('Admin') || userPrivileges.includes('Show All Conversations');
   
@@ -345,14 +352,16 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
           }
         }
       }
-    };
+    }
+   };
   
     socket.on('newMessage', newMessageHandler);
   
     return () => {
       socket.off('newMessage', newMessageHandler);
     };
-  }, [socket, currentConversation, setCurrentConversation, setConversations, setMessages, activeConversation, userHasInteracted, userPrivileges]);  
+  }, [socket, currentConversation, setCurrentConversation, setConversations, setMessages, activeConversation, userHasInteracted, userPrivileges]);
+  
 
   
   const messageStatusUpdateHandler = ({ messageId, status }) => {
