@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import axios from "axios";
 import { Google, Facebook } from 'react-bootstrap-icons';
 import "./Register.css";
@@ -26,7 +26,10 @@ const Register = () => {
     logo: ""
   });
   const [error, setError] = useState("");
+  const [step, setStep] = useState(1);
+  const [plan, setPlan] = useState("");
   const navigate = useNavigate();
+  const formRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,16 +37,69 @@ const Register = () => {
       ...empresa,
       [name]: value
     });
+    setError(""); // Elimina el mensaje de error cuando el usuario comienza a llenar los campos
+  };
+
+  const handleNextStep = () => {
+    if (formRef.current.checkValidity()) {
+      setError("");
+      setStep(step + 1);
+      window.scrollTo(0, 0);
+    } else {
+      setError("Por favor, complete todos los campos requeridos correctamente.");
+      formRef.current.reportValidity();
+    }
+  };
+
+  const handlePreviousStep = () => {
+    setStep(step - 1);
+    window.scrollTo(0, 0);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!idUsuario || !nombre || !apellido || !email || !rol || !contraseña) {
+    if (!idUsuario || !nombre || !apellido || !email || !rol || !contraseña || !plan) {
       setError("Por favor, complete todos los campos requeridos.");
       return;
     }
+
+    // Definir las características de cada plan
+    const plans = {
+      basic: {
+        type: "Basic",
+        users: 3,
+        contacts: 1500,
+        integrations: 1,
+        automations: 1,
+        ai_messages: 0,
+        ai_analysis: 0,
+        bot_messages: 0,
+      },
+      standard: {
+        type: "Standard",
+        users: 5,
+        contacts: 5000,
+        integrations: 3,
+        automations: 3,
+        ai_messages: 0,
+        ai_analysis: 0,
+        bot_messages: 0,
+      },
+      pro: {
+        type: "Pro",
+        users: 8,
+        contacts: 10000,
+        integrations: 6,
+        automations: 6,
+        ai_messages: 0,
+        ai_analysis: 0,
+        bot_messages: 0,
+      }
+    };
+
+    const selectedPlan = plans[plan.toLowerCase()];
 
     const payload = {
       id_usuario: idUsuario,
@@ -54,7 +110,8 @@ const Register = () => {
       link_de_la_foto: linkFoto,
       rol,
       contraseña,
-      empresa
+      empresa,
+      plan: selectedPlan
     };
 
     console.log(payload); // Agregado para depuración
@@ -80,83 +137,111 @@ const Register = () => {
       <div className="right-side">
         <img src="/icono WA.png" alt="Logo" className="logo" />
         {error && <p className="error-message">{error}</p>}
-        <form onSubmit={handleSubmit} className="register-form">
-          <label>
-            ID de usuario:
-            <input type="text" value={idUsuario} onChange={(e) => setIdUsuario(e.target.value)} />
-          </label>
-          <label>
-            Nombre:
-            <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-          </label>
-          <label>
-            Apellido:
-            <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} />
-          </label>
-          <label>
-            Teléfono:
-            <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
-          </label>
-          <label>
-            Email:
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
-          <label>
-            Link de la foto:
-            <input type="text" value={linkFoto} onChange={(e) => setLinkFoto(e.target.value)} />
-          </label>
-          <label>
-            Rol:
-            <input type="text" value={rol} onChange={(e) => setRol(e.target.value)} />
-          </label>
-          <label>
-            Contraseña:
-            <input type="password" value={contraseña} onChange={(e) => setContraseña(e.target.value)} />
-          </label>
-          <h3>Datos de la Empresa</h3>
-          <label>
-            Nombre de la Empresa:
-            <input type="text" name="name" value={empresa.name} onChange={handleInputChange} />
-          </label>
-          <label>
-            Tipo de Documento:
-            <input type="text" name="document_type" value={empresa.document_type} onChange={handleInputChange} />
-          </label>
-          <label>
-            Número de Documento:
-            <input type="text" name="document_number" value={empresa.document_number} onChange={handleInputChange} />
-          </label>
-          <label>
-            Dirección:
-            <input type="text" name="address" value={empresa.address} onChange={handleInputChange} />
-          </label>
-          <label>
-            Ciudad:
-            <input type="text" name="city" value={empresa.city} onChange={handleInputChange} />
-          </label>
-          <label>
-            País:
-            <input type="text" name="country" value={empresa.country} onChange={handleInputChange} />
-          </label>
-          <label>
-            Código Postal:
-            <input type="text" name="postal_code" value={empresa.postal_code} onChange={handleInputChange} />
-          </label>
-          <label>
-            Email de la Empresa:
-            <input type="email" name="company_email" value={empresa.email} onChange={handleInputChange} />
-          </label>
-          <label>
-            Teléfono de la Empresa:
-            <input type="text" name="phone" value={empresa.phone} onChange={handleInputChange} />
-          </label>
-          <label>
-            Logo de la Empresa:
-            <input type="text" name="logo" value={empresa.logo} onChange={handleInputChange} />
-          </label>
-          <input type="submit" value="Registrarse" className="btn btn-primary" />
-          <Link to="/login">¿Ya tienes cuenta? Inicia sesión</Link>
+        <form ref={formRef} onSubmit={handleSubmit} className="register-form">
+          {step === 1 && (
+            <>
+              <h3>Datos de la Empresa</h3>
+              <label>
+                Nombre de la Empresa: <span className="required">*</span>
+                <input type="text" name="name" value={empresa.name} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Tipo de Documento: <span className="required">*</span>
+                <input type="text" name="document_type" value={empresa.document_type} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Número de Documento: <span className="required">*</span>
+                <input type="text" name="document_number" value={empresa.document_number} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Dirección: <span className="required">*</span>
+                <input type="text" name="address" value={empresa.address} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Ciudad: <span className="required">*</span>
+                <input type="text" name="city" value={empresa.city} onChange={handleInputChange} required />
+              </label>
+              <label>
+                País: <span className="required">*</span>
+                <input type="text" name="country" value={empresa.country} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Código Postal: <span className="required">*</span>
+                <input type="text" name="postal_code" value={empresa.postal_code} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Email de la Empresa: <span className="required">*</span>
+                <input type="email" name="email" value={empresa.email} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Teléfono de la Empresa: <span className="required">*</span>
+                <input type="text" name="phone" value={empresa.phone} onChange={handleInputChange} required />
+              </label>
+              <label>
+                Logo de la Empresa:
+                <input type="text" name="logo" value={empresa.logo} onChange={handleInputChange} />
+              </label>
+              <button type="button" onClick={handleNextStep} className="btn btn-secondary">Siguiente</button>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <label>
+                ID de usuario: <span className="required">*</span>
+                <input type="text" value={idUsuario} onChange={(e) => {setIdUsuario(e.target.value); setError("");}} required />
+              </label>
+              <label>
+                Nombre: <span className="required">*</span>
+                <input type="text" value={nombre} onChange={(e) => {setNombre(e.target.value); setError("");}} required />
+              </label>
+              <label>
+                Apellido: <span className="required">*</span>
+                <input type="text" value={apellido} onChange={(e) => {setApellido(e.target.value); setError("");}} required />
+              </label>
+              <label>
+                Teléfono: <span className="required">*</span>
+                <input type="text" value={telefono} onChange={(e) => {setTelefono(e.target.value); setError("");}} required />
+              </label>
+              <label>
+                Email: <span className="required">*</span>
+                <input type="email" value={email} onChange={(e) => {setEmail(e.target.value); setError("");}} required />
+              </label>
+              <label>
+                Link de la foto:
+                <input type="text" value={linkFoto} onChange={(e) => setLinkFoto(e.target.value)} />
+              </label>
+              <label>
+                Rol: <span className="required">*</span>
+                <input type="text" value={rol} onChange={(e) => {setRol(e.target.value); setError("");}} required />
+              </label>
+              <label>
+                Contraseña: <span className="required">*</span>
+                <input type="password" value={contraseña} onChange={(e) => {setContraseña(e.target.value); setError("");}} required />
+              </label>
+              <button type="button" onClick={handlePreviousStep} className="btn btn-secondary">Atrás</button>
+              <button type="button" onClick={handleNextStep} className="btn btn-secondary">Siguiente</button>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <h3>Selecciona tu Plan</h3>
+              <label>
+                <input type="radio" name="plan" value="basic" checked={plan === "basic"} onChange={(e) => setPlan(e.target.value)} required /> Básico
+              </label>
+              <label>
+                <input type="radio" name="plan" value="standard" checked={plan === "standard"} onChange={(e) => setPlan(e.target.value)} required /> Estándar
+              </label>
+              <label>
+                <input type="radio" name="plan" value="pro" checked={plan === "pro"} onChange={(e) => setPlan(e.target.value)} required /> Pro
+              </label>
+              <button type="button" onClick={handlePreviousStep} className="btn btn-secondary">Atrás</button>
+              <button type="submit" className="btn btn-primary">Registrarse</button>
+            </>
+          )}
         </form>
+        <Link to="/login" className="register-link">¿Ya tienes cuenta? Inicia sesión</Link>
         <div className="social-login-container">
           <button onClick={() => window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`} className="social-login-button google-button">
             <Google className="social-icon" />

@@ -202,6 +202,8 @@ const CompanyInfo = () => {
 
     const updateUser = { ...userData };
 
+    updateUser.contraseña = document.getElementById('formUserPassword').value;
+
     if (profileFile) {
       const formData = new FormData();
       formData.append('profile', profileFile);
