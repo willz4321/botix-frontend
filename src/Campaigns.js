@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl, DropdownButton, Dropdown } from 'react-bootstrap';
 import TemplatePreview from './TemplatePreview';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import './Campaigns.css';
 import { ArrowUpSquare, CheckCircle, Clock, RocketFill, ThreeDotsVertical, XCircle } from 'react-bootstrap-icons';
+
+const socket = io(process.env.REACT_APP_API_URL);
 
 const Campaigns = () => {
   const navigate = useNavigate();
@@ -45,7 +48,7 @@ const Campaigns = () => {
           params: { company_id: companyId },
           headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('Fetched campaigns:', response.data); // Agregar log para depuración
+        console.log('Fetched campaigns:', response.data);
         setCampaigns(response.data);
       } catch (error) {
         console.error('Error fetching campaigns:', error);
@@ -54,6 +57,18 @@ const Campaigns = () => {
 
     fetchTemplates();
     fetchCampaigns();
+
+    socket.on('templateStatusUpdate', ({ templateId, status }) => {
+      setTemplates(prevTemplates =>
+        prevTemplates.map(template =>
+          template.id === templateId ? { ...template, state: status } : template
+        )
+      );
+    });
+
+    return () => {
+      socket.off('templateStatusUpdate');
+    };
   }, []);
 
   const handleCreateTemplateClick = () => {
