@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl } from 'react-bootstrap';
+import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl, DropdownButton, Dropdown } from 'react-bootstrap';
 import TemplatePreview from './TemplatePreview';
 import axios from 'axios';
 import './Campaigns.css';
+import { RocketFill, ThreeDotsVertical } from 'react-bootstrap-icons';
 
 const Campaigns = () => {
   const navigate = useNavigate();
@@ -218,11 +219,25 @@ const Campaigns = () => {
                       <td>{campaign.objective}</td>
                       <td>{campaign.type}</td>
                       <td>{campaign.template_name}</td>
-                      <td>
-                        <Button variant="info" size="sm" className="me-2" onClick={() => handleEditCampaignClick(campaign)}>Ver</Button>
-                        <Button variant="secondary" size="sm" className="me-2" onClick={() => handleEditCampaignClick(campaign)}>Editar</Button>
-                        <Button variant="danger" size="sm" onClick={() => handleDeleteCampaignClick(campaign.id)}>Eliminar</Button>
-                        <Button variant="primary" size="sm" onClick={() => handleLaunchCampaignClick(campaign.id)}>Lanzar</Button>
+                      <td className="d-flex justify-content-between align-items-center">
+                        <Button variant="primary" size="sm" onClick={() => handleLaunchCampaignClick(campaign.id)}>
+                          <RocketFill /> Lanzar
+                        </Button>
+                        <DropdownButton id="dropdown-basic-button" className="custom-dropdown-toggle" title={<ThreeDotsVertical />} variant="ghost" size="sm">
+                          <Dropdown.Item onClick={() => handleEditCampaignClick(campaign)}>
+                            Detalles
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => handleEditCampaignClick(campaign)}>
+                            Editar
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => handleLaunchCampaignClick(campaign.id)}>
+                            Lanzar
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item onClick={() => handleDeleteCampaignClick(campaign.id)}>
+                            Eliminar
+                          </Dropdown.Item>
+                        </DropdownButton>
                       </td>
                     </tr>
                   ))
