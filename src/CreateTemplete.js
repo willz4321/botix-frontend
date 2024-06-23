@@ -162,6 +162,7 @@ const CreateTemplate = () => {
   const [templateStatus, setTemplateStatus] = useState('PENDING');
   const [loading, setLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
+  const [buttons, setButtons] = useState([]);
 
   const navigate = useNavigate();
 
@@ -587,13 +588,66 @@ const CreateTemplate = () => {
     textarea.setSelectionRange(newPosition, newPosition);
   };  
 
+  const addButton = () => {
+    setButtons([...buttons, { type: 'QUICK_REPLY', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
+  };
+
+  const handleButtonTypeChange = (index, type) => {
+    const newButtons = [...buttons];
+    newButtons[index].type = type;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonTextChange = (index, text) => {
+    const newButtons = [...buttons];
+    newButtons[index].text = text;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonPhoneCodeChange = (index, phoneCode) => {
+    const newButtons = [...buttons];
+    newButtons[index].phoneCode = phoneCode;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonPhoneNumberChange = (index, phoneNumber) => {
+    const newButtons = [...buttons];
+    newButtons[index].phoneNumber = phoneNumber;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonUrlChange = (index, url) => {
+    const newButtons = [...buttons];
+    newButtons[index].url = url;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonUrlTypeChange = (index, urlType) => {
+    const newButtons = [...buttons];
+    newButtons[index].urlType = urlType;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonUrlExampleChange = (index, urlExample) => {
+    const newButtons = [...buttons];
+    newButtons[index].urlExample = urlExample;
+    setButtons(newButtons);
+  };
+  
+  const removeButton = (index) => {
+    const newButtons = buttons.filter((_, i) => i !== index);
+    setButtons(newButtons);
+  };
+  
+
   return (
     <Container fluid>
       {loading && (
         <div className="loading-spinner">
           <Spinner animation="border" />
         </div>
-      )}<Row className={`justify-content-between m-4 ${loading ? 'loading-content' : ''}`}>
+      )}
+      <Row className={`justify-content-between m-4 ${loading ? 'loading-content' : ''}`}>
         <Col xs={9} className="text-center">
           <h2>Crear Plantilla de WhatsApp</h2>
         </Col>
@@ -638,7 +692,7 @@ const CreateTemplate = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col xs={12} md={6} className='edit_template'>
+          <Col xs={12} md={6} className='edit_template' style={{height: '100dvh', overflowY: 'auto'}}>
             <h3 className="text-center">Editar Plantilla</h3>
             <br></br>
             <Form.Group className="mb-3">
@@ -826,83 +880,89 @@ const CreateTemplate = () => {
               </div>
             ))}
             <Form.Group className="mb-3">
-              <Form.Label>Tipo de Botón:</Form.Label>
-              <Form.Select value={buttonType} onChange={(e) => setButtonType(e.target.value)}>
-                <option value="none">Ninguno</option>
-                <option value="QUICK_REPLY">Respuesta Rápida</option>
-                <option value="PHONE_NUMBER">Número de Teléfono</option>
-                <option value="URL">URL</option>
-              </Form.Select>
-            </Form.Group>
-            {buttonType === 'PHONE_NUMBER' && (
-              <Form.Group className="mb-3">
-                <Form.Label>Código de Teléfono:</Form.Label>
-                <Form.Control type="text" value={buttonPhoneCode} onChange={(e) => setButtonPhoneCode(e.target.value)} />
-                <Form.Label>Número de Teléfono:</Form.Label>
-                <Form.Control type="text" value={buttonPhoneNumber} onChange={(e) => setButtonPhoneNumber(e.target.value)} />
-              </Form.Group>
-            )}
-            {buttonType === 'URL' && (
-              <>
-                <Form.Group className="mb-3">
-                  <Form.Label>URL:</Form.Label>
-                  <Form.Control type="text" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tipo de URL:</Form.Label>
-                  <Form.Select value={buttonUrlType} onChange={(e) => setButtonUrlType(e.target.value)}>
-                    <option value="static">Estática</option>
-                    <option value="dynamic">Dinámica</option>
-                  </Form.Select>
-                </Form.Group>
-                {buttonUrlType === 'dynamic' && (
-                  <div>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ejemplo de URL:</Form.Label>
-                    <Form.Control type="text" value={buttonUrlExample} onChange={(e) => setButtonUrlExample(e.target.value)} />
-                  </Form.Group>
-                  <Row>
-                    <Col>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Fuente:</Form.Label>
-                        <Form.Select value={bodySources[buttonUrlExample]} onChange={(e) => updateBodySource(buttonUrlExample, e.target.value)} required>
-                          <option value="">Seleccionar Fuente</option>
-                          {Object.keys(sources).map(source => (
-                            <option key={source} value={source}>{source}</option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                    <Col>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Variable:</Form.Label>
-                        <Form.Select
-                          value={bodyVariables[buttonUrlExample]}
-                          onChange={(e) => updateBodyVariable(buttonUrlExample, e.target.value)}
-                          required
-                        >
-                          <option value="">Seleccionar Variable</option>
-                          {bodySources[buttonUrlExample] && sources[bodySources[buttonUrlExample]]?.map(varOption => (
-                            <option key={varOption.value} value={varOption.value}>{varOption.name}</option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  </div>
-                )}
-              </>
-            )}
-            {buttonType !== 'none' && (
-              <Form.Group className="mb-3">
-                <Form.Label>Texto del Botón:</Form.Label>
-                <Form.Control type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
-              </Form.Group>
-            )}
-            <Form.Group className="mb-3">
               <Form.Label>Texto de Pie de Página (Opcional):</Form.Label>
               <Form.Control type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} />
             </Form.Group>
+            {buttons.map((button, index) => (
+              <div key={index} className="button-group p-4 rounded mb-3" style={{border: 'dashed 1px gray'}}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Tipo de Botón:</Form.Label>
+                  <Form.Select value={button.type} onChange={(e) => handleButtonTypeChange(index, e.target.value)}>
+                    <option value="none">Ninguno</option>
+                    <option value="QUICK_REPLY">Respuesta Rápida</option>
+                    <option value="PHONE_NUMBER">Número de Teléfono</option>
+                    <option value="URL">URL</option>
+                  </Form.Select>
+                </Form.Group>
+                {button.type === 'PHONE_NUMBER' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Código de Teléfono:</Form.Label>
+                    <Form.Control type="text" value={button.phoneCode} onChange={(e) => handleButtonPhoneCodeChange(index, e.target.value)} />
+                    <Form.Label>Número de Teléfono:</Form.Label>
+                    <Form.Control type="text" value={button.phoneNumber} onChange={(e) => handleButtonPhoneNumberChange(index, e.target.value)} />
+                  </Form.Group>
+                )}
+                {button.type === 'URL' && (
+                  <>
+                    <Form.Group className="mb-3">
+                      <Form.Label>URL:</Form.Label>
+                      <Form.Control type="text" value={button.url} onChange={(e) => handleButtonUrlChange(index, e.target.value)} />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Tipo de URL:</Form.Label>
+                      <Form.Select value={button.urlType} onChange={(e) => handleButtonUrlTypeChange(index, e.target.value)}>
+                        <option value="static">Estática</option>
+                        <option value="dynamic">Dinámica</option>
+                      </Form.Select>
+                    </Form.Group>
+                    {button.urlType === 'dynamic' && (
+                      <div>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Ejemplo de URL:</Form.Label>
+                          <Form.Control type="text" value={button.urlExample} onChange={(e) => handleButtonUrlExampleChange(index, e.target.value)} />
+                        </Form.Group>
+                        <Row>
+                          <Col>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Fuente:</Form.Label>
+                              <Form.Select value={bodySources[button.urlExample]} onChange={(e) => updateBodySource(button.urlExample, e.target.value)} required>
+                                <option value="">Seleccionar Fuente</option>
+                                {Object.keys(sources).map(source => (
+                                  <option key={source} value={source}>{source}</option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                          <Col>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Variable:</Form.Label>
+                              <Form.Select
+                                value={bodyVariables[button.urlExample]}
+                                onChange={(e) => updateBodyVariable(button.urlExample, e.target.value)}
+                                required
+                              >
+                                <option value="">Seleccionar Variable</option>
+                                {bodySources[button.urlExample] && sources[bodySources[button.urlExample]]?.map(varOption => (
+                                  <option key={varOption.value} value={varOption.value}>{varOption.name}</option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                      </div>
+                    )}
+                  </>
+                )}
+                {button.type !== 'none' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Texto del Botón:</Form.Label>
+                    <Form.Control type="text" value={button.text} onChange={(e) => handleButtonTextChange(index, e.target.value)} />
+                  </Form.Group>
+                )}
+                <Button variant="btn btn-outline-danger" onClick={() => removeButton(index)}>Eliminar Botón</Button>
+              </div>
+            ))}
+            <Button variant="secondary" onClick={addButton}>Agregar Botón</Button>
             {category === 'UTILITY' && (
               <Form.Group className="mb-3">
                 <Form.Check
@@ -949,11 +1009,11 @@ const CreateTemplate = () => {
                   </div>
                   <div className="body" dangerouslySetInnerHTML={{ __html: formatTextToHtml(bodyText) }}></div>
                   {footerText && <div className="footer small">{footerText}</div>}
-                  {buttonType !== 'none' && (
+                  {buttons.length > 0 && (
                     <div className="buttons">
-                      {buttonType === 'QUICK_REPLY' && <button className="btn btn-success w-100 mt-2">{buttonText}</button>}
-                      {buttonType === 'PHONE_NUMBER' && <button className="btn btn-success w-100 mt-2">{buttonText}</button>}
-                      {buttonType === 'URL' && <button className="btn btn-success w-100 mt-2">{buttonText}</button>}
+                      {buttons.map((button, index) => (
+                        <button key={index} className="btn btn-success w-100 mt-2">{button.text}</button>
+                      ))}
                     </div>
                   )}
                 </div>
