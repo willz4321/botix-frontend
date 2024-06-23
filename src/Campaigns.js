@@ -4,7 +4,7 @@ import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl, Drop
 import TemplatePreview from './TemplatePreview';
 import axios from 'axios';
 import './Campaigns.css';
-import { ArrowUpSquare, FileEarmarkSpreadsheet, RocketFill, ThreeDotsVertical } from 'react-bootstrap-icons';
+import { ArrowUpSquare, CheckCircle, Clock, RocketFill, ThreeDotsVertical, XCircle } from 'react-bootstrap-icons';
 
 const Campaigns = () => {
   const navigate = useNavigate();
@@ -169,7 +169,14 @@ const Campaigns = () => {
                   {filteredTemplates.length > 0 ? (
                     filteredTemplates.map(template => (
                       <tr key={template.id} onClick={() => setSelectedTemplate(template)}>
-                        <td>{template.nombre}</td>
+                        <td>
+                          {template.state === "APPROVED" 
+                            ? (<CheckCircle className='text-success me-1' title='Aprobada para usar' />)
+                            : template.state === "REJECTED"
+                              ? (<XCircle className='text-danger me-1' title='Rechazada para usar' />)
+                              : (<Clock className='text-secondary me-1' title='Pendiente por aprobar' />)}
+                          {template.nombre}
+                        </td>
                         <td>{template.type}</td>
                         <td className="d-flex justify-content-between align-items-center">
                           <Button className='d-flex align-items-center gap-1' variant="success" size="sm" onClick={() => handleUseTemplateClick(template)}>
