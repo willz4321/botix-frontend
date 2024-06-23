@@ -129,7 +129,7 @@ const CreateTemplate = () => {
   const [category, setCategory] = useState('Marketing');
   const [subType, setSubType] = useState('Personalizado');
   const [name, setName] = useState('');
-  const [language, setLanguage] = useState('');
+  const [language, setLanguage] = useState('es');
   const [headerType, setHeaderType] = useState('none');
   const [mediaType, setMediaType] = useState('image');
   const [headerText, setHeaderText] = useState('');
