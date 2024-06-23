@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button, Modal, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Modal, Spinner, ButtonGroup } from 'react-bootstrap';
+import { Code, TypeBold, TypeItalic, TypeStrikethrough } from 'react-bootstrap-icons'
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import './CreateTemplate.css';
@@ -520,14 +521,68 @@ const CreateTemplate = () => {
     setName(formattedName);
   };
 
+  const applyFormat = (formatType) => {
+    const textarea = document.getElementById('bodyTextArea');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+  
+    const beforeText = text.slice(0, start);
+    const selectedText = text.slice(start, end);
+    const afterText = text.slice(end);
+  
+    const beforeSpaces = selectedText.match(/^\s*/)[0];
+    const afterSpaces = selectedText.match(/\s*$/)[0];
+    const trimmedText = selectedText.trim();
+  
+    let formattedText;
+    let formatChar;
+    let regex;
+  
+    switch (formatType) {
+      case 'bold':
+        formatChar = '*';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      case 'italic':
+        formatChar = '_';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      case 'strikethrough':
+        formatChar = '~';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      case 'monospace':
+        formatChar = '`';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      default:
+        formatChar = '';
+        regex = null;
+    }
+  
+    if (regex && regex.test(text)) {
+      // Eliminar formato
+      formattedText = text.replace(regex, trimmedText);
+    } else {
+      // Aplicar formato
+      formattedText = `${beforeText}${beforeSpaces}${formatChar}${trimmedText}${formatChar}${afterSpaces}${afterText}`;
+    }
+  
+    setBodyText(formattedText);
+  
+    const newPosition = beforeText.length + beforeSpaces.length + trimmedText.length + 2; // +2 for the format characters
+    textarea.focus();
+    textarea.setSelectionRange(newPosition, newPosition);
+  };  
+
   return (
     <Container fluid>
       {loading && (
         <div className="loading-spinner">
           <Spinner animation="border" />
         </div>
-      )}
-      <Row className={`justify-content-between m-4 ${loading ? 'loading-content' : ''}`}>
+      )}<Row className={`justify-content-between m-4 ${loading ? 'loading-content' : ''}`}>
         <Col xs={9} className="text-center">
           <h2>Crear Plantilla de WhatsApp</h2>
         </Col>
@@ -696,16 +751,23 @@ const CreateTemplate = () => {
               <Form.Label>Texto del Cuerpo:</Form.Label>
               <Form.Control
                 as="textarea"
+                id="bodyTextArea"
                 value={bodyText}
                 onChange={(e) => setBodyText(e.target.value)}
                 required
               />
+              <div className="mt-2 d-flex justify-content-between">
+                <ButtonGroup>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Negrita" onClick={() => applyFormat('bold')}><TypeBold /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Itálica" onClick={() => applyFormat('italic')}><TypeItalic /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Tachado" onClick={() => applyFormat('strikethrough')}><TypeStrikethrough /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Monospace" onClick={() => applyFormat('monospace')}><Code /></Button>
+                </ButtonGroup>
+                <Button className='w-auto px-4' variant="secondary" onClick={addBodyVariable}>
+                  Agregar variable
+                </Button>
+              </div>
             </Form.Group>
-            <div className="text-end">
-              <button className='btn btn-link text-decoration-none text-dark' onClick={addBodyVariable}>
-                Agregar variable
-              </button>
-            </div>
             {Object.keys(bodyExamples).map((variable) => (
               <div key={variable}>
                 <Form.Group className="mb-3">
