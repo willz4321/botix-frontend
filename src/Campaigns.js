@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl, DropdownButton, Dropdown } from 'react-bootstrap';
 import TemplatePreview from './TemplatePreview';
@@ -59,9 +59,10 @@ const Campaigns = () => {
     fetchCampaigns();
 
     socket.on('templateStatusUpdate', ({ templateId, status }) => {
+      console.log(`Estado de la plantilla "${templateId}" actualizada a: ${status}`);
       setTemplates(prevTemplates =>
         prevTemplates.map(template =>
-          template.id === templateId ? { ...template, state: status } : template
+          template.id === templateId.toString() ? { ...template, state: status } : template
         )
       );
     });
