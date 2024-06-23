@@ -4,7 +4,7 @@ import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl, Drop
 import TemplatePreview from './TemplatePreview';
 import axios from 'axios';
 import './Campaigns.css';
-import { RocketFill, ThreeDotsVertical } from 'react-bootstrap-icons';
+import { ArrowUpSquare, FileEarmarkSpreadsheet, RocketFill, ThreeDotsVertical } from 'react-bootstrap-icons';
 
 const Campaigns = () => {
   const navigate = useNavigate();
@@ -162,7 +162,7 @@ const Campaigns = () => {
                   <tr>
                     <th>Nombre</th>
                     <th>Tipo</th>
-                    <th>Acciones</th>
+                    <th width="1">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,10 +171,22 @@ const Campaigns = () => {
                       <tr key={template.id} onClick={() => setSelectedTemplate(template)}>
                         <td>{template.nombre}</td>
                         <td>{template.type}</td>
-                        <td>
-                          <Button variant="success" size="sm" className="me-2" onClick={() => handleUseTemplateClick(template)}>Usar</Button>
-                          <Button variant="secondary" size="sm" className="me-2" onClick={() => handleEditTemplateClick(template)}>Editar</Button>
-                          <Button variant="danger" size="sm" onClick={() => handleDeleteTemplateClick(template.id)}>Eliminar</Button>
+                        <td className="d-flex justify-content-between align-items-center">
+                          <Button className='d-flex align-items-center gap-1' variant="success" size="sm" onClick={() => handleUseTemplateClick(template)}>
+                            <ArrowUpSquare /> Usar
+                          </Button>
+                          <DropdownButton id="dropdown-basic-button" className="custom-dropdown-toggle" title={<ThreeDotsVertical />} variant="ghost" size="sm">
+                            <Dropdown.Item onClick={() => handleUseTemplateClick(template)}>
+                              Usar
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleEditTemplateClick(template)}>
+                              Editar
+                            </Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item className="text-danger" onClick={() => handleDeleteTemplateClick(template.id)}>
+                              Eliminar
+                            </Dropdown.Item>
+                          </DropdownButton>
                         </td>
                       </tr>
                     ))
@@ -201,7 +213,7 @@ const Campaigns = () => {
         </Row>
         <Row>
           <Col>
-            <Table striped bordered hover>
+            <Table  bordered hover>
               <thead>
                 <tr>
                   <th>Nombre</th>
