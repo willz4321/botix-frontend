@@ -589,7 +589,11 @@ const CreateTemplate = () => {
   };  
 
   const addButton = () => {
-    setButtons([...buttons, { type: 'QUICK_REPLY', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
+    if (buttons.length < 10) {
+      setButtons([...buttons, { type: 'QUICK_REPLY', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
+    } else {
+      alert('No puedes agregar más de 10 botones.');
+    }
   };
 
   const handleButtonTypeChange = (index, type) => {
@@ -962,7 +966,12 @@ const CreateTemplate = () => {
                 <Button variant="btn btn-outline-danger" onClick={() => removeButton(index)}>Eliminar Botón</Button>
               </div>
             ))}
-            <Button variant="secondary" onClick={addButton}>Agregar Botón</Button>
+            {buttons.length <= 10 && (
+              <Button variant="secondary" onClick={addButton}>
+                Agregar Botón ({buttons.length}/10)
+              </Button>
+            )}
+
             {category === 'UTILITY' && (
               <Form.Group className="mb-3">
                 <Form.Check
