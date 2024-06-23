@@ -28,6 +28,8 @@ function ChatWindow() {
   const [audioBlob, setAudioBlob] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(null);
 
   useEffect(() => {
     if (isConnected) {
@@ -310,16 +312,14 @@ function ChatWindow() {
     setShowTemplateModal(true);
   };
 
-  const ReplyBar = () => {
+  function ReplyBar() {
     const [referenceElement, setReferenceElement] = useState(null);
     const [popperElement, setPopperElement] = useState(null);
     const { styles, attributes } = usePopper(referenceElement, popperElement, {
       placement: 'top',
     });
-    const [messageText, setMessageText] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const textInputRef = useRef(null);
-    const [cursorPosition, setCursorPosition] = useState(null);
     const fileInputRef = useRef(null);
     const [fileMenuVisible, setFileMenuVisible] = useState(false);
     const [fileInputType, setFileInputType] = useState('');
@@ -330,7 +330,7 @@ function ChatWindow() {
         const position = cursorPosition !== null ? cursorPosition : messageText.length;
         textInputRef.current.setSelectionRange(position, position);
       }
-    }, [showEmojiPicker, messageText]);
+    }, [showEmojiPicker]);
 
     useEffect(() => {
       const handleClickOutsideEmoji = (event) => {
@@ -358,10 +358,12 @@ function ChatWindow() {
 
     const handleSendMessage = async () => {
       if (!currentConversation || !messageText.trim()) return;
+      const textToSend = messageText;
+      setMessageText(''); // Clear the text field immediately
       try {
         const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/messages/send-text`, {
           phone: currentConversation.phone_number,
-          messageText: messageText,
+          messageText: textToSend,
           conversationId: currentConversation.conversation_id
         });
         console.log('Message sent successfully:', response.data);
@@ -369,7 +371,6 @@ function ChatWindow() {
           ...prevMessages,
           [currentConversation.conversation_id]: [...prevMessages[currentConversation.conversation_id], response.data.data]
         }));
-        setMessageText('');
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -475,7 +476,7 @@ function ChatWindow() {
         <AudioRecorder onSend={handleSendAudio} />
       </div>
     );
-  };
+  }
 
   function CustomToggle({ children, eventKey }) {
     const decoratedOnClick = useAccordionButton(eventKey, () => {
@@ -942,4 +943,3 @@ function ChatWindow() {
 }
 
 export default ChatWindow;
-  
