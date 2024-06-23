@@ -588,15 +588,45 @@ const CreateTemplate = () => {
     textarea.setSelectionRange(newPosition, newPosition);
   };  
 
-  const addButton = () => {
-    if (buttons.length < 10) {
-      setButtons([...buttons, { type: 'QUICK_REPLY', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
-    } else {
+  const urlButtonsCount = buttons.filter(button => button.type === 'URL').length;
+  const phoneButtonsCount = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
+  
+  const addButton = (type) => {
+    const urlButtons = buttons.filter(button => button.type === 'URL').length;
+    const phoneButtons = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
+  
+    if (buttons.length >= 10) {
       alert('No puedes agregar más de 10 botones.');
+      return;
     }
-  };
+  
+    if (type === 'URL' && urlButtons >= 2) {
+      alert('No puedes agregar más de 2 botones de tipo URL.');
+      return;
+    }
+  
+    if (type === 'PHONE_NUMBER' && phoneButtons >= 1) {
+      alert('No puedes agregar más de 1 botón de tipo Número de Teléfono.');
+      return;
+    }
+  
+    setButtons([...buttons, { type, text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
+  };  
 
   const handleButtonTypeChange = (index, type) => {
+    const urlButtons = buttons.filter(button => button.type === 'URL').length;
+    const phoneButtons = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
+  
+    if (type === 'URL' && urlButtons >= 2) {
+      alert('No puedes agregar más de 2 botones de tipo URL.');
+      return;
+    }
+  
+    if (type === 'PHONE_NUMBER' && phoneButtons >= 1) {
+      alert('No puedes agregar más de 1 botón de tipo Número de Teléfono.');
+      return;
+    }
+  
     const newButtons = [...buttons];
     newButtons[index].type = type;
     setButtons(newButtons);
@@ -892,10 +922,13 @@ const CreateTemplate = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Tipo de Botón:</Form.Label>
                   <Form.Select value={button.type} onChange={(e) => handleButtonTypeChange(index, e.target.value)}>
-                    <option value="none">Ninguno</option>
                     <option value="QUICK_REPLY">Respuesta Rápida</option>
-                    <option value="PHONE_NUMBER">Número de Teléfono</option>
-                    <option value="URL">URL</option>
+                    <option value="PHONE_NUMBER" disabled={phoneButtonsCount >= 1}>
+                      Número de Teléfono ({phoneButtonsCount}/1)
+                    </option>
+                    <option value="URL" disabled={urlButtonsCount >= 2}>
+                      URL ({urlButtonsCount}/2)
+                    </option>
                   </Form.Select>
                 </Form.Group>
                 {button.type === 'PHONE_NUMBER' && (
@@ -966,11 +999,12 @@ const CreateTemplate = () => {
                 <Button variant="btn btn-outline-danger" onClick={() => removeButton(index)}>Eliminar Botón</Button>
               </div>
             ))}
-            {buttons.length <= 10 && (
+            {buttons.length < 10 && (
               <Button variant="secondary" onClick={addButton}>
                 Agregar Botón ({buttons.length}/10)
               </Button>
             )}
+
 
             {category === 'UTILITY' && (
               <Form.Group className="mb-3">
