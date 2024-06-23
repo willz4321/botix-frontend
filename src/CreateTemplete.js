@@ -516,6 +516,17 @@ const CreateTemplate = () => {
     });
   };
 
+  const formatTextToHtml = (text) => {
+    // Reemplazar los formatos con etiquetas HTML
+    const formattedText = text
+      .replace(/\*(.*?)\*/g, '<strong>$1</strong>') // Negrita
+      .replace(/_(.*?)_/g, '<em>$1</em>') // Itálica
+      .replace(/~(.*?)~/g, '<del>$1</del>') // Tachado
+      .replace(/`(.*?)`/g, '<code class="text-black">$1</code>'); // Monospaciado
+    
+    return formattedText.replace(/\n/g, '<br>'); // Reemplazar saltos de línea con <br>
+  };
+
   const handleNameChange = (e) => {
     const formattedName = e.target.value.toLowerCase().replace(/ /g, '_');
     setName(formattedName);
@@ -936,9 +947,7 @@ const CreateTemplate = () => {
                     )}
                     {headerType === 'location' && <div><strong>Ubicación: Ejemplo de ubicación</strong></div>}
                   </div>
-                  <div className="body">
-                    {renderTextWithExamples(bodyText, bodyExamples)}
-                  </div>
+                  <div className="body" dangerouslySetInnerHTML={{ __html: formatTextToHtml(bodyText) }}></div>
                   {footerText && <div className="footer small">{footerText}</div>}
                   {buttonType !== 'none' && (
                     <div className="buttons">
