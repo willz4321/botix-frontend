@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl } from 'react-bootstrap';
+import { Container, Row, Col, Button, Table, Form, InputGroup, FormControl, DropdownButton, Dropdown } from 'react-bootstrap';
 import TemplatePreview from './TemplatePreview';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import './Campaigns.css';
+import { ArrowUpSquare, CheckCircle, Clock, RocketFill, ThreeDotsVertical, XCircle } from 'react-bootstrap-icons';
+
+const socket = io(process.env.REACT_APP_API_URL);
 
 const Campaigns = () => {
   const navigate = useNavigate();
@@ -44,7 +48,7 @@ const Campaigns = () => {
           params: { company_id: companyId },
           headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('Fetched campaigns:', response.data); // Agregar log para depuración
+        console.log('Fetched campaigns:', response.data);
         setCampaigns(response.data);
       } catch (error) {
         console.error('Error fetching campaigns:', error);
@@ -53,6 +57,19 @@ const Campaigns = () => {
 
     fetchTemplates();
     fetchCampaigns();
+
+    socket.on('templateStatusUpdate', ({ templateId, status }) => {
+      console.log(`Estado de la plantilla "${templateId}" actualizada a: ${status}`);
+      setTemplates(prevTemplates =>
+        prevTemplates.map(template =>
+          template.id === templateId.toString() ? { ...template, state: status } : template
+        )
+      );
+    });
+
+    return () => {
+      socket.off('templateStatusUpdate');
+    };
   }, []);
 
   const handleCreateTemplateClick = () => {
@@ -161,19 +178,38 @@ const Campaigns = () => {
                   <tr>
                     <th>Nombre</th>
                     <th>Tipo</th>
-                    <th>Acciones</th>
+                    <th width="1">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTemplates.length > 0 ? (
                     filteredTemplates.map(template => (
                       <tr key={template.id} onClick={() => setSelectedTemplate(template)}>
-                        <td>{template.nombre}</td>
-                        <td>{template.type}</td>
                         <td>
-                          <Button variant="success" size="sm" className="me-2" onClick={() => handleUseTemplateClick(template)}>Usar</Button>
-                          <Button variant="secondary" size="sm" className="me-2" onClick={() => handleEditTemplateClick(template)}>Editar</Button>
-                          <Button variant="danger" size="sm" onClick={() => handleDeleteTemplateClick(template.id)}>Eliminar</Button>
+                          {template.state === "APPROVED" 
+                            ? (<CheckCircle className='text-success me-1' title='Aprobada para usar' />)
+                            : template.state === "REJECTED"
+                              ? (<XCircle className='text-danger me-1' title='Rechazada para usar' />)
+                              : (<Clock className='text-secondary me-1' title='Pendiente por aprobar' />)}
+                          {template.nombre}
+                        </td>
+                        <td>{template.type}</td>
+                        <td className="d-flex justify-content-between align-items-center">
+                          <Button className='d-flex align-items-center gap-1' variant="success" size="sm" onClick={() => handleUseTemplateClick(template)}>
+                            <ArrowUpSquare /> Usar
+                          </Button>
+                          <DropdownButton id="dropdown-basic-button" className="custom-dropdown-toggle" title={<ThreeDotsVertical />} variant="ghost" size="sm">
+                            <Dropdown.Item onClick={() => handleUseTemplateClick(template)}>
+                              Usar
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleEditTemplateClick(template)}>
+                              Editar
+                            </Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item className="text-danger" onClick={() => handleDeleteTemplateClick(template.id)}>
+                              Eliminar
+                            </Dropdown.Item>
+                          </DropdownButton>
                         </td>
                       </tr>
                     ))
@@ -200,7 +236,7 @@ const Campaigns = () => {
         </Row>
         <Row>
           <Col>
-            <Table striped bordered hover>
+            <Table  bordered hover>
               <thead>
                 <tr>
                   <th>Nombre</th>
@@ -218,11 +254,25 @@ const Campaigns = () => {
                       <td>{campaign.objective}</td>
                       <td>{campaign.type}</td>
                       <td>{campaign.template_name}</td>
-                      <td>
-                        <Button variant="info" size="sm" className="me-2" onClick={() => handleEditCampaignClick(campaign)}>Ver</Button>
-                        <Button variant="secondary" size="sm" className="me-2" onClick={() => handleEditCampaignClick(campaign)}>Editar</Button>
-                        <Button variant="danger" size="sm" onClick={() => handleDeleteCampaignClick(campaign.id)}>Eliminar</Button>
-                        <Button variant="primary" size="sm" onClick={() => handleLaunchCampaignClick(campaign.id)}>Lanzar</Button>
+                      <td className="d-flex justify-content-between align-items-center">
+                        <Button variant="primary" size="sm" onClick={() => handleLaunchCampaignClick(campaign.id)}>
+                          <RocketFill /> Lanzar
+                        </Button>
+                        <DropdownButton id="dropdown-basic-button" className="custom-dropdown-toggle" title={<ThreeDotsVertical />} variant="ghost" size="sm">
+                          <Dropdown.Item onClick={() => handleEditCampaignClick(campaign)}>
+                            Detalles
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => handleEditCampaignClick(campaign)}>
+                            Editar
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => handleLaunchCampaignClick(campaign.id)}>
+                            Lanzar
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item onClick={() => handleDeleteCampaignClick(campaign.id)}>
+                            Eliminar
+                          </Dropdown.Item>
+                        </DropdownButton>
                       </td>
                     </tr>
                   ))

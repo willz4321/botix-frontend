@@ -1,3 +1,7 @@
+.custom-dropdown-toggle>button::after {
+  display: none;
+}
+
 .campaigns-container {
     position: relative;
     padding-top: 20px;
@@ -64,4 +68,5 @@
     color: #fff;
     border-radius: 5px;
   }
+  
   
