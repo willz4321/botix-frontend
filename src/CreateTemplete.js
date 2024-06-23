@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Container, Row, Col, Form, Button, Modal, Spinner } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import './CreateTemplate.css';
 
@@ -160,6 +161,8 @@ const CreateTemplate = () => {
   const [templateStatus, setTemplateStatus] = useState('PENDING');
   const [loading, setLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     socket.on('templateStatusUpdate', ({ templateId, status }) => {
@@ -529,7 +532,7 @@ const CreateTemplate = () => {
           <h2>Crear Plantilla de WhatsApp</h2>
         </Col>
         <Col xs={1} className="text-start">
-          <Button variant="dark" className="action-button">Atrás</Button>
+          <Button variant="dark" className="action-button" onClick={() => navigate(-1)}>Atrás</Button>
         </Col>
         <Col xs={1} className="text-end">
           <Button variant="outline-danger" className="action-button" onClick={resetForm}>Cancelar</Button>
