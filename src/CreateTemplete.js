@@ -180,21 +180,21 @@ const CreateTemplate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     if (category === 'UTILITY' && !headerText.includes('{{') && !bodyText.includes('{{')) {
       alert('Las plantillas de utilidad deben incluir al menos una variable en el cuerpo o en el encabezado.');
       setLoading(false);
       return;
     }
-
+  
     const bodyExampleArray = Object.keys(bodyExamples).map(key => bodyExamples[key]);
     const bodySourceArray = Object.keys(bodySources).map(key => bodySources[key]);
     const bodyVariableArray = Object.keys(bodyVariables).map(key => bodyVariables[key]);
-
+  
     const headerExampleArray = headerVariableAdded ? [headerExample] : [];
     const headerSourceArray = headerVariableAdded ? [headerSource] : [];
     const headerVariableArray = headerVariableAdded ? [headerVariable] : [];
-
+  
     const components = [
       ...(headerType === 'text' ? [{
         type: 'HEADER',
@@ -218,111 +218,69 @@ const CreateTemplate = () => {
         type: 'FOOTER',
         text: footerText
       }] : []),
-      ...(buttonType !== 'none' ? [{
+      ...(buttons.length > 0 ? [{
         type: 'BUTTONS',
-        buttons: [
-          ...(buttonType === 'QUICK_REPLY' ? [{
-            type: 'QUICK_REPLY',
-            text: buttonText
-          }] : buttonType === 'PHONE_NUMBER' ? [{
-            type: 'PHONE_NUMBER',
-            text: buttonText,
-            phone_number: `${buttonPhoneCode}${buttonPhoneNumber}`
-          }] : buttonType === 'URL' ? [{
-            type: 'URL',
-            text: buttonText,
-            url: buttonUrl,
-            example: buttonUrlType === 'dynamic' ? { url_text: buttonUrlExample } : undefined,
-          }] : [])
-        ]
+        buttons: buttons.map(button => {
+          if (button.type === 'QUICK_REPLY') {
+            return {
+              type: 'QUICK_REPLY',
+              text: button.text
+            };
+          } else if (button.type === 'PHONE_NUMBER') {
+            return {
+              type: 'PHONE_NUMBER',
+              text: button.text,
+              phone_number: `${button.phoneCode}${button.phoneNumber}`
+            };
+          } else if (button.type === 'URL') {
+            return {
+              type: 'URL',
+              text: button.text,
+              url: button.url,
+              example: button.urlType === 'dynamic' ? { url_text: button.urlExample } : undefined,
+            };
+          } else {
+            return null;
+          }
+        }).filter(Boolean)
       }] : [])
     ];
-
-    const componentsWithSourceAndVariable = [
-      ...(headerType === 'text' ? [{
-        type: 'HEADER',
-        format: 'TEXT',
-        text: headerText,
-        example: headerVariableAdded ? { header_text: headerExampleArray } : undefined,
-        source: headerVariableAdded ? headerSourceArray : undefined,
-        variable: headerVariableAdded ? headerVariableArray : undefined
-      }] : headerType === 'media' ? [{
-        type: 'HEADER',
-        format: mediaType.toUpperCase(),
-        example: { header_handle: [headerImageUrl || headerVideoUrl || headerDocumentUrl] }
-      }] : headerType === 'location' ? [{
-        type: 'HEADER',
-        format: 'LOCATION'
-      }] : []),
-      {
-        type: 'BODY',
-        text: bodyText,
-        example: bodyExampleArray.length > 0 ? { body_text: [bodyExampleArray] } : undefined,
-        source: bodySourceArray.length > 0 ? bodySourceArray : undefined,
-        variable: bodyVariableArray.length > 0 ? bodyVariableArray : undefined
-      },
-      ...(footerText ? [{
-        type: 'FOOTER',
-        text: footerText
-      }] : []),
-      ...(buttonType !== 'none' ? [{
-        type: 'BUTTONS',
-        buttons: [
-          ...(buttonType === 'QUICK_REPLY' ? [{
-            type: 'QUICK_REPLY',
-            text: buttonText
-          }] : buttonType === 'PHONE_NUMBER' ? [{
-            type: 'PHONE_NUMBER',
-            text: buttonText,
-            phone_number: `${buttonPhoneCode}${buttonPhoneNumber}`
-          }] : buttonType === 'URL' ? [{
-            type: 'URL',
-            text: buttonText,
-            url: buttonUrl,
-            example: buttonUrlType === 'dynamic' ? { url_text: buttonUrlExample } : undefined,
-            source: buttonUrlType === 'dynamic' ? [bodySources[buttonUrlExample]] : undefined,
-            variable: buttonUrlType === 'dynamic' ? [bodyVariables[buttonUrlExample]] : undefined
-          }] : [])
-        ]
-      }] : [])
-    ];
-
+  
     const companyId = localStorage.getItem('company_id');
-
+  
     const templateData = {
       name: name.toLowerCase().replace(/[^a-z0-9_]/g, '_'),
       language,
       category: category.toUpperCase(),
       components,
-      componentsWithSourceAndVariable,
       company_id: companyId,
       ...(customValidity ? { validity_period: validityPeriod } : {})
     };
-
+  
     console.log('Template Data:', templateData);
-
+  
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('No token found');
       setLoading(false);
       return;
     }
-
+  
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/create-template`, templateData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-
+  
       console.log('Template created successfully:', response.data);
-
+  
       if (['IMAGE', 'VIDEO', 'DOCUMENT'].includes(mediaType.toUpperCase())) {
         setResponseMessage('Plantilla almacenada con éxito. Ahora debe crear la misma plantilla con las mismas características en WhatsApp.');
       } else {
         setResponseMessage(`Estado de la Plantilla: ${response.data.status}`);
       }
-
+  
       setTemplateStatus(response.data.status);
       setLoading(false);
       setShowModal(true);
@@ -333,7 +291,7 @@ const CreateTemplate = () => {
       setLoading(false);
       setShowModal(true);
     }
-  };
+  };   
 
   const resetForm = () => {
     setCategory('Marketing');
@@ -610,7 +568,7 @@ const CreateTemplate = () => {
       return;
     }
   
-    setButtons([...buttons, { type, text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
+    setButtons([...buttons, { type: 'none', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
   };  
 
   const handleButtonTypeChange = (index, type) => {
@@ -922,6 +880,7 @@ const CreateTemplate = () => {
                 <Form.Group className="mb-3">
                   <Form.Label>Tipo de Botón:</Form.Label>
                   <Form.Select value={button.type} onChange={(e) => handleButtonTypeChange(index, e.target.value)}>
+                    <option value="none">Ninguno</option>
                     <option value="QUICK_REPLY">Respuesta Rápida</option>
                     <option value="PHONE_NUMBER" disabled={phoneButtonsCount >= 1}>
                       Número de Teléfono ({phoneButtonsCount}/1)
@@ -1004,7 +963,6 @@ const CreateTemplate = () => {
                 Agregar Botón ({buttons.length}/10)
               </Button>
             )}
-
 
             {category === 'UTILITY' && (
               <Form.Group className="mb-3">
