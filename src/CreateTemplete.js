@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button, Modal, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Modal, Spinner, ButtonGroup } from 'react-bootstrap';
+import { Code, TypeBold, TypeItalic, TypeStrikethrough } from 'react-bootstrap-icons'
+import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import './CreateTemplate.css';
 
@@ -128,7 +130,7 @@ const CreateTemplate = () => {
   const [category, setCategory] = useState('Marketing');
   const [subType, setSubType] = useState('Personalizado');
   const [name, setName] = useState('');
-  const [language, setLanguage] = useState('');
+  const [language, setLanguage] = useState('es');
   const [headerType, setHeaderType] = useState('none');
   const [mediaType, setMediaType] = useState('image');
   const [headerText, setHeaderText] = useState('');
@@ -160,6 +162,9 @@ const CreateTemplate = () => {
   const [templateStatus, setTemplateStatus] = useState('PENDING');
   const [loading, setLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
+  const [buttons, setButtons] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     socket.on('templateStatusUpdate', ({ templateId, status }) => {
@@ -175,21 +180,21 @@ const CreateTemplate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     if (category === 'UTILITY' && !headerText.includes('{{') && !bodyText.includes('{{')) {
       alert('Las plantillas de utilidad deben incluir al menos una variable en el cuerpo o en el encabezado.');
       setLoading(false);
       return;
     }
-
+  
     const bodyExampleArray = Object.keys(bodyExamples).map(key => bodyExamples[key]);
     const bodySourceArray = Object.keys(bodySources).map(key => bodySources[key]);
     const bodyVariableArray = Object.keys(bodyVariables).map(key => bodyVariables[key]);
-
+  
     const headerExampleArray = headerVariableAdded ? [headerExample] : [];
     const headerSourceArray = headerVariableAdded ? [headerSource] : [];
     const headerVariableArray = headerVariableAdded ? [headerVariable] : [];
-
+  
     const components = [
       ...(headerType === 'text' ? [{
         type: 'HEADER',
@@ -213,111 +218,69 @@ const CreateTemplate = () => {
         type: 'FOOTER',
         text: footerText
       }] : []),
-      ...(buttonType !== 'none' ? [{
+      ...(buttons.length > 0 ? [{
         type: 'BUTTONS',
-        buttons: [
-          ...(buttonType === 'QUICK_REPLY' ? [{
-            type: 'QUICK_REPLY',
-            text: buttonText
-          }] : buttonType === 'PHONE_NUMBER' ? [{
-            type: 'PHONE_NUMBER',
-            text: buttonText,
-            phone_number: `${buttonPhoneCode}${buttonPhoneNumber}`
-          }] : buttonType === 'URL' ? [{
-            type: 'URL',
-            text: buttonText,
-            url: buttonUrl,
-            example: buttonUrlType === 'dynamic' ? { url_text: buttonUrlExample } : undefined,
-          }] : [])
-        ]
+        buttons: buttons.map(button => {
+          if (button.type === 'QUICK_REPLY') {
+            return {
+              type: 'QUICK_REPLY',
+              text: button.text
+            };
+          } else if (button.type === 'PHONE_NUMBER') {
+            return {
+              type: 'PHONE_NUMBER',
+              text: button.text,
+              phone_number: `${button.phoneCode}${button.phoneNumber}`
+            };
+          } else if (button.type === 'URL') {
+            return {
+              type: 'URL',
+              text: button.text,
+              url: button.url,
+              example: button.urlType === 'dynamic' ? { url_text: button.urlExample } : undefined,
+            };
+          } else {
+            return null;
+          }
+        }).filter(Boolean)
       }] : [])
     ];
-
-    const componentsWithSourceAndVariable = [
-      ...(headerType === 'text' ? [{
-        type: 'HEADER',
-        format: 'TEXT',
-        text: headerText,
-        example: headerVariableAdded ? { header_text: headerExampleArray } : undefined,
-        source: headerVariableAdded ? headerSourceArray : undefined,
-        variable: headerVariableAdded ? headerVariableArray : undefined
-      }] : headerType === 'media' ? [{
-        type: 'HEADER',
-        format: mediaType.toUpperCase(),
-        example: { header_handle: [headerImageUrl || headerVideoUrl || headerDocumentUrl] }
-      }] : headerType === 'location' ? [{
-        type: 'HEADER',
-        format: 'LOCATION'
-      }] : []),
-      {
-        type: 'BODY',
-        text: bodyText,
-        example: bodyExampleArray.length > 0 ? { body_text: [bodyExampleArray] } : undefined,
-        source: bodySourceArray.length > 0 ? bodySourceArray : undefined,
-        variable: bodyVariableArray.length > 0 ? bodyVariableArray : undefined
-      },
-      ...(footerText ? [{
-        type: 'FOOTER',
-        text: footerText
-      }] : []),
-      ...(buttonType !== 'none' ? [{
-        type: 'BUTTONS',
-        buttons: [
-          ...(buttonType === 'QUICK_REPLY' ? [{
-            type: 'QUICK_REPLY',
-            text: buttonText
-          }] : buttonType === 'PHONE_NUMBER' ? [{
-            type: 'PHONE_NUMBER',
-            text: buttonText,
-            phone_number: `${buttonPhoneCode}${buttonPhoneNumber}`
-          }] : buttonType === 'URL' ? [{
-            type: 'URL',
-            text: buttonText,
-            url: buttonUrl,
-            example: buttonUrlType === 'dynamic' ? { url_text: buttonUrlExample } : undefined,
-            source: buttonUrlType === 'dynamic' ? [bodySources[buttonUrlExample]] : undefined,
-            variable: buttonUrlType === 'dynamic' ? [bodyVariables[buttonUrlExample]] : undefined
-          }] : [])
-        ]
-      }] : [])
-    ];
-
+  
     const companyId = localStorage.getItem('company_id');
-
+  
     const templateData = {
       name: name.toLowerCase().replace(/[^a-z0-9_]/g, '_'),
       language,
       category: category.toUpperCase(),
       components,
-      componentsWithSourceAndVariable,
       company_id: companyId,
       ...(customValidity ? { validity_period: validityPeriod } : {})
     };
-
+  
     console.log('Template Data:', templateData);
-
+  
     const token = localStorage.getItem('token');
     if (!token) {
       console.error('No token found');
       setLoading(false);
       return;
     }
-
+  
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/create-template`, templateData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-
+  
       console.log('Template created successfully:', response.data);
-
+  
       if (['IMAGE', 'VIDEO', 'DOCUMENT'].includes(mediaType.toUpperCase())) {
         setResponseMessage('Plantilla almacenada con éxito. Ahora debe crear la misma plantilla con las mismas características en WhatsApp.');
       } else {
         setResponseMessage(`Estado de la Plantilla: ${response.data.status}`);
       }
-
+  
       setTemplateStatus(response.data.status);
       setLoading(false);
       setShowModal(true);
@@ -328,7 +291,7 @@ const CreateTemplate = () => {
       setLoading(false);
       setShowModal(true);
     }
-  };
+  };   
 
   const resetForm = () => {
     setCategory('Marketing');
@@ -512,10 +475,162 @@ const CreateTemplate = () => {
     });
   };
 
+  const formatTextToHtml = (text) => {
+    // Reemplazar los formatos con etiquetas HTML
+    const formattedText = text
+      .replace(/\*(.*?)\*/g, '<strong>$1</strong>') // Negrita
+      .replace(/_(.*?)_/g, '<em>$1</em>') // Itálica
+      .replace(/~(.*?)~/g, '<del>$1</del>') // Tachado
+      .replace(/`(.*?)`/g, '<code class="text-black">$1</code>'); // Monospaciado
+    
+    return formattedText.replace(/\n/g, '<br>'); // Reemplazar saltos de línea con <br>
+  };
+
   const handleNameChange = (e) => {
     const formattedName = e.target.value.toLowerCase().replace(/ /g, '_');
     setName(formattedName);
   };
+
+  const applyFormat = (formatType) => {
+    const textarea = document.getElementById('bodyTextArea');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+  
+    const beforeText = text.slice(0, start);
+    const selectedText = text.slice(start, end);
+    const afterText = text.slice(end);
+  
+    const beforeSpaces = selectedText.match(/^\s*/)[0];
+    const afterSpaces = selectedText.match(/\s*$/)[0];
+    const trimmedText = selectedText.trim();
+  
+    let formattedText;
+    let formatChar;
+    let regex;
+  
+    switch (formatType) {
+      case 'bold':
+        formatChar = '*';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      case 'italic':
+        formatChar = '_';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      case 'strikethrough':
+        formatChar = '~';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      case 'monospace':
+        formatChar = '`';
+        regex = new RegExp(`\\${formatChar}${trimmedText}\\${formatChar}`);
+        break;
+      default:
+        formatChar = '';
+        regex = null;
+    }
+  
+    if (regex && regex.test(text)) {
+      // Eliminar formato
+      formattedText = text.replace(regex, trimmedText);
+    } else {
+      // Aplicar formato
+      formattedText = `${beforeText}${beforeSpaces}${formatChar}${trimmedText}${formatChar}${afterSpaces}${afterText}`;
+    }
+  
+    setBodyText(formattedText);
+  
+    const newPosition = beforeText.length + beforeSpaces.length + trimmedText.length + 2; // +2 for the format characters
+    textarea.focus();
+    textarea.setSelectionRange(newPosition, newPosition);
+  };  
+
+  const urlButtonsCount = buttons.filter(button => button.type === 'URL').length;
+  const phoneButtonsCount = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
+  
+  const addButton = (type) => {
+    const urlButtons = buttons.filter(button => button.type === 'URL').length;
+    const phoneButtons = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
+  
+    if (buttons.length >= 10) {
+      alert('No puedes agregar más de 10 botones.');
+      return;
+    }
+  
+    if (type === 'URL' && urlButtons >= 2) {
+      alert('No puedes agregar más de 2 botones de tipo URL.');
+      return;
+    }
+  
+    if (type === 'PHONE_NUMBER' && phoneButtons >= 1) {
+      alert('No puedes agregar más de 1 botón de tipo Número de Teléfono.');
+      return;
+    }
+  
+    setButtons([...buttons, { type: 'none', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
+  };  
+
+  const handleButtonTypeChange = (index, type) => {
+    const urlButtons = buttons.filter(button => button.type === 'URL').length;
+    const phoneButtons = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
+  
+    if (type === 'URL' && urlButtons >= 2) {
+      alert('No puedes agregar más de 2 botones de tipo URL.');
+      return;
+    }
+  
+    if (type === 'PHONE_NUMBER' && phoneButtons >= 1) {
+      alert('No puedes agregar más de 1 botón de tipo Número de Teléfono.');
+      return;
+    }
+  
+    const newButtons = [...buttons];
+    newButtons[index].type = type;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonTextChange = (index, text) => {
+    const newButtons = [...buttons];
+    newButtons[index].text = text;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonPhoneCodeChange = (index, phoneCode) => {
+    const newButtons = [...buttons];
+    newButtons[index].phoneCode = phoneCode;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonPhoneNumberChange = (index, phoneNumber) => {
+    const newButtons = [...buttons];
+    newButtons[index].phoneNumber = phoneNumber;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonUrlChange = (index, url) => {
+    const newButtons = [...buttons];
+    newButtons[index].url = url;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonUrlTypeChange = (index, urlType) => {
+    const newButtons = [...buttons];
+    newButtons[index].urlType = urlType;
+    setButtons(newButtons);
+  };
+  
+  const handleButtonUrlExampleChange = (index, urlExample) => {
+    const newButtons = [...buttons];
+    newButtons[index].urlExample = urlExample;
+    setButtons(newButtons);
+  };
+  
+  const removeButton = (index) => {
+    const newButtons = buttons.filter((_, i) => i !== index);
+    setButtons(newButtons);
+  };
+  
 
   return (
     <Container fluid>
@@ -529,7 +644,7 @@ const CreateTemplate = () => {
           <h2>Crear Plantilla de WhatsApp</h2>
         </Col>
         <Col xs={1} className="text-start">
-          <Button variant="dark" className="action-button">Atrás</Button>
+          <Button variant="dark" className="action-button" onClick={() => navigate(-1)}>Atrás</Button>
         </Col>
         <Col xs={1} className="text-end">
           <Button variant="outline-danger" className="action-button" onClick={resetForm}>Cancelar</Button>
@@ -569,7 +684,7 @@ const CreateTemplate = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col xs={12} md={6} className='edit_template'>
+          <Col xs={12} md={6} className='edit_template' style={{height: '100dvh', overflowY: 'auto'}}>
             <h3 className="text-center">Editar Plantilla</h3>
             <br></br>
             <Form.Group className="mb-3">
@@ -693,16 +808,23 @@ const CreateTemplate = () => {
               <Form.Label>Texto del Cuerpo:</Form.Label>
               <Form.Control
                 as="textarea"
+                id="bodyTextArea"
                 value={bodyText}
                 onChange={(e) => setBodyText(e.target.value)}
                 required
               />
+              <div className="mt-2 d-flex justify-content-between">
+                <ButtonGroup>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Negrita" onClick={() => applyFormat('bold')}><TypeBold /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Itálica" onClick={() => applyFormat('italic')}><TypeItalic /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Tachado" onClick={() => applyFormat('strikethrough')}><TypeStrikethrough /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Monospace" onClick={() => applyFormat('monospace')}><Code /></Button>
+                </ButtonGroup>
+                <Button className='w-auto px-4' variant="secondary" onClick={addBodyVariable}>
+                  Agregar variable
+                </Button>
+              </div>
             </Form.Group>
-            <div className="text-end">
-              <button className='btn btn-link text-decoration-none text-dark' onClick={addBodyVariable}>
-                Agregar variable
-              </button>
-            </div>
             {Object.keys(bodyExamples).map((variable) => (
               <div key={variable}>
                 <Form.Group className="mb-3">
@@ -750,83 +872,98 @@ const CreateTemplate = () => {
               </div>
             ))}
             <Form.Group className="mb-3">
-              <Form.Label>Tipo de Botón:</Form.Label>
-              <Form.Select value={buttonType} onChange={(e) => setButtonType(e.target.value)}>
-                <option value="none">Ninguno</option>
-                <option value="QUICK_REPLY">Respuesta Rápida</option>
-                <option value="PHONE_NUMBER">Número de Teléfono</option>
-                <option value="URL">URL</option>
-              </Form.Select>
-            </Form.Group>
-            {buttonType === 'PHONE_NUMBER' && (
-              <Form.Group className="mb-3">
-                <Form.Label>Código de Teléfono:</Form.Label>
-                <Form.Control type="text" value={buttonPhoneCode} onChange={(e) => setButtonPhoneCode(e.target.value)} />
-                <Form.Label>Número de Teléfono:</Form.Label>
-                <Form.Control type="text" value={buttonPhoneNumber} onChange={(e) => setButtonPhoneNumber(e.target.value)} />
-              </Form.Group>
-            )}
-            {buttonType === 'URL' && (
-              <>
-                <Form.Group className="mb-3">
-                  <Form.Label>URL:</Form.Label>
-                  <Form.Control type="text" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Tipo de URL:</Form.Label>
-                  <Form.Select value={buttonUrlType} onChange={(e) => setButtonUrlType(e.target.value)}>
-                    <option value="static">Estática</option>
-                    <option value="dynamic">Dinámica</option>
-                  </Form.Select>
-                </Form.Group>
-                {buttonUrlType === 'dynamic' && (
-                  <div>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ejemplo de URL:</Form.Label>
-                    <Form.Control type="text" value={buttonUrlExample} onChange={(e) => setButtonUrlExample(e.target.value)} />
-                  </Form.Group>
-                  <Row>
-                    <Col>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Fuente:</Form.Label>
-                        <Form.Select value={bodySources[buttonUrlExample]} onChange={(e) => updateBodySource(buttonUrlExample, e.target.value)} required>
-                          <option value="">Seleccionar Fuente</option>
-                          {Object.keys(sources).map(source => (
-                            <option key={source} value={source}>{source}</option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                    <Col>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Variable:</Form.Label>
-                        <Form.Select
-                          value={bodyVariables[buttonUrlExample]}
-                          onChange={(e) => updateBodyVariable(buttonUrlExample, e.target.value)}
-                          required
-                        >
-                          <option value="">Seleccionar Variable</option>
-                          {bodySources[buttonUrlExample] && sources[bodySources[buttonUrlExample]]?.map(varOption => (
-                            <option key={varOption.value} value={varOption.value}>{varOption.name}</option>
-                          ))}
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                  </div>
-                )}
-              </>
-            )}
-            {buttonType !== 'none' && (
-              <Form.Group className="mb-3">
-                <Form.Label>Texto del Botón:</Form.Label>
-                <Form.Control type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} />
-              </Form.Group>
-            )}
-            <Form.Group className="mb-3">
               <Form.Label>Texto de Pie de Página (Opcional):</Form.Label>
               <Form.Control type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} />
             </Form.Group>
+            {buttons.map((button, index) => (
+              <div key={index} className="button-group p-4 rounded mb-3" style={{border: 'dashed 1px gray'}}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Tipo de Botón:</Form.Label>
+                  <Form.Select value={button.type} onChange={(e) => handleButtonTypeChange(index, e.target.value)}>
+                    <option value="none">Ninguno</option>
+                    <option value="QUICK_REPLY">Respuesta Rápida</option>
+                    <option value="PHONE_NUMBER" disabled={phoneButtonsCount >= 1}>
+                      Número de Teléfono ({phoneButtonsCount}/1)
+                    </option>
+                    <option value="URL" disabled={urlButtonsCount >= 2}>
+                      URL ({urlButtonsCount}/2)
+                    </option>
+                  </Form.Select>
+                </Form.Group>
+                {button.type === 'PHONE_NUMBER' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Código de Teléfono:</Form.Label>
+                    <Form.Control type="text" value={button.phoneCode} onChange={(e) => handleButtonPhoneCodeChange(index, e.target.value)} />
+                    <Form.Label>Número de Teléfono:</Form.Label>
+                    <Form.Control type="text" value={button.phoneNumber} onChange={(e) => handleButtonPhoneNumberChange(index, e.target.value)} />
+                  </Form.Group>
+                )}
+                {button.type === 'URL' && (
+                  <>
+                    <Form.Group className="mb-3">
+                      <Form.Label>URL:</Form.Label>
+                      <Form.Control type="text" value={button.url} onChange={(e) => handleButtonUrlChange(index, e.target.value)} />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Tipo de URL:</Form.Label>
+                      <Form.Select value={button.urlType} onChange={(e) => handleButtonUrlTypeChange(index, e.target.value)}>
+                        <option value="static">Estática</option>
+                        <option value="dynamic">Dinámica</option>
+                      </Form.Select>
+                    </Form.Group>
+                    {button.urlType === 'dynamic' && (
+                      <div>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Ejemplo de URL:</Form.Label>
+                          <Form.Control type="text" value={button.urlExample} onChange={(e) => handleButtonUrlExampleChange(index, e.target.value)} />
+                        </Form.Group>
+                        <Row>
+                          <Col>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Fuente:</Form.Label>
+                              <Form.Select value={bodySources[button.urlExample]} onChange={(e) => updateBodySource(button.urlExample, e.target.value)} required>
+                                <option value="">Seleccionar Fuente</option>
+                                {Object.keys(sources).map(source => (
+                                  <option key={source} value={source}>{source}</option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                          <Col>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Variable:</Form.Label>
+                              <Form.Select
+                                value={bodyVariables[button.urlExample]}
+                                onChange={(e) => updateBodyVariable(button.urlExample, e.target.value)}
+                                required
+                              >
+                                <option value="">Seleccionar Variable</option>
+                                {bodySources[button.urlExample] && sources[bodySources[button.urlExample]]?.map(varOption => (
+                                  <option key={varOption.value} value={varOption.value}>{varOption.name}</option>
+                                ))}
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                      </div>
+                    )}
+                  </>
+                )}
+                {button.type !== 'none' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Texto del Botón:</Form.Label>
+                    <Form.Control type="text" value={button.text} onChange={(e) => handleButtonTextChange(index, e.target.value)} />
+                  </Form.Group>
+                )}
+                <Button variant="btn btn-outline-danger" onClick={() => removeButton(index)}>Eliminar Botón</Button>
+              </div>
+            ))}
+            {buttons.length < 10 && (
+              <Button variant="secondary" onClick={addButton}>
+                Agregar Botón ({buttons.length}/10)
+              </Button>
+            )}
+
             {category === 'UTILITY' && (
               <Form.Group className="mb-3">
                 <Form.Check
@@ -871,15 +1008,13 @@ const CreateTemplate = () => {
                     )}
                     {headerType === 'location' && <div><strong>Ubicación: Ejemplo de ubicación</strong></div>}
                   </div>
-                  <div className="body">
-                    {renderTextWithExamples(bodyText, bodyExamples)}
-                  </div>
+                  <div className="body" dangerouslySetInnerHTML={{ __html: formatTextToHtml(bodyText) }}></div>
                   {footerText && <div className="footer small">{footerText}</div>}
-                  {buttonType !== 'none' && (
+                  {buttons.length > 0 && (
                     <div className="buttons">
-                      {buttonType === 'QUICK_REPLY' && <button className="btn btn-success w-100 mt-2">{buttonText}</button>}
-                      {buttonType === 'PHONE_NUMBER' && <button className="btn btn-success w-100 mt-2">{buttonText}</button>}
-                      {buttonType === 'URL' && <button className="btn btn-success w-100 mt-2">{buttonText}</button>}
+                      {buttons.map((button, index) => (
+                        <button key={index} className="btn btn-success w-100 mt-2">{button.text}</button>
+                      ))}
                     </div>
                   )}
                 </div>
