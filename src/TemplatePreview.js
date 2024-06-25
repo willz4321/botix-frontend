@@ -1,4 +1,6 @@
 import React from 'react';
+import { Button } from 'react-bootstrap';
+import { ListUl } from 'react-bootstrap-icons';
 
 const TemplatePreview = ({ template }) => {
   if (!template) {
@@ -16,7 +18,7 @@ const TemplatePreview = ({ template }) => {
   return (
     <>
       <div className='text-center'>
-        <h3 >Vista Previa de la Plantilla</h3>
+        <h3>Vista Previa de la Plantilla</h3>
       </div>
       <div className="preview-container">
         <div className="whatsapp-preview">
@@ -39,11 +41,24 @@ const TemplatePreview = ({ template }) => {
               {replaceVariables(template.body_text, template.bodyVariables)}
             </div>
             {template.footer && <div className="footer small">{template.footer}</div>}
-            {template.type_button !== 'none' && (
+            {template.buttons && template.buttons.length > 0 && (
               <div className="buttons">
-                {template.type_button === 'QUICK_REPLY' && <button className="btn btn-success w-100 mt-2">{template.button_text}</button>}
-                {template.type_button === 'PHONE_NUMBER' && <button className="btn btn-success w-100 mt-2">{template.button_text}</button>}
-                {template.type_button === 'URL' && <button className="btn btn-success w-100 mt-2">{template.button_text}</button>}
+                {template.buttons.slice(0, template.buttons.length > 3 ? 2 : 3).map((button, index) => (
+                  <>
+                    <hr />
+                    <Button key={index} variant="link" style={{textDecoration: 'none',padding: '0 10px', backgroundColor: 'transparent', color: '#46afec', fontWeight: 'bold'}}>
+                      {button.text}
+                    </Button>
+                  </>
+                ))}
+                {template.buttons.length > 3 && (
+                  <>
+                    <hr />
+                    <Button variant="link" style={{textDecoration: 'none',padding: '0 10px', backgroundColor: 'transparent', color: '#46afec', fontWeight: 'bold'}}>
+                      <ListUl /> Ver todas las opciones
+                    </Button>
+                  </>
+                )}
               </div>
             )}
           </div>
