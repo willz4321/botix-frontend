@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Modal, Button, Form, Card, Row, Col } from 'react-bootstrap';
-import { Person, PencilSquare, GeoAlt, Building, Telephone, Envelope, Robot, Puzzle, Globe, People, PlusCircle, Diagram2, Shuffle, Briefcase, Diagram3, Eye, Whatsapp, Instagram, Facebook, Telegram } from 'react-bootstrap-icons';
+import { Modal, Button, Form, Card, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Person, PencilSquare, GeoAlt, Building, Telephone, Envelope, Robot, Puzzle, Globe, People, PlusCircle, Diagram2, Shuffle, Briefcase, Diagram3, Eye, Whatsapp, Instagram, Facebook, Telegram, StarFill } from 'react-bootstrap-icons';
 import './CompanyInfo.css';
 import CreateUserModal from './createUserModal';
 import CreateContactModal from './CreateContactModal';
@@ -10,7 +10,7 @@ import CreateOrganizationModal from './CreateOrganizationModal';
 import CreateRoleModal from './CreateRoleModal';
 import CreateDepartmentModal from './CreateDepartmentModal';
 import DepartmentPhasesModal from './DepartmentPhasesModal';
-import CreateIntegrationModal from './CreateIntegrationModal'; // Import the new CreateIntegrationModal component
+import CreateIntegrationModal from './CreateIntegrationModal'; 
 
 const CompanyInfo = () => {
   const [companyData, setCompanyData] = useState({});
@@ -23,9 +23,10 @@ const CompanyInfo = () => {
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [showCreateDepartmentModal, setShowCreateDepartmentModal] = useState(false);
   const [showDepartmentPhasesModal, setShowDepartmentPhasesModal] = useState(false);
-  const [showCreateIntegrationModal, setShowCreateIntegrationModal] = useState(false);  // State for showing CreateIntegrationModal
+  const [showCreateIntegrationModal, setShowCreateIntegrationModal] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showSetDefaultUserModal, setShowSetDefaultUserModal] = useState(false);
   const [formData, setFormData] = useState({});
   const [userData, setUserData] = useState({});
   const [logoFile, setLogoFile] = useState(null);
@@ -40,6 +41,8 @@ const CompanyInfo = () => {
   const [contactsCount, setContactsCount] = useState(0);
   const [rolesCount, setRolesCount] = useState(0);
   const [organizationsCount, setOrganizationsCount] = useState(0);
+  const [defaultUser, setDefaultUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const companyId = localStorage.getItem('company_id');
   const userId = localStorage.getItem('user_id');
 
@@ -81,6 +84,10 @@ const CompanyInfo = () => {
 
         const organizationsCountResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/organizations/count/${companyId}`);
         setOrganizationsCount(organizationsCountResponse.data.count);
+
+        const defaultUserResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/default-user/${companyId}`);
+        setDefaultUser(defaultUserResponse.data.id_usuario);
+        console.log(`El usuario por defecto es ${defaultUserResponse.data.id_usuario}`)
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -239,6 +246,19 @@ const CompanyInfo = () => {
       .catch(error => {
         console.error('Error deleting user:', error);
       });
+  };
+
+  const handleSetDefaultUser = async () => {
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/change-default-user`, {
+        id_usuario: selectedUser.id_usuario,
+        company_id: companyId
+      });
+      setDefaultUser(selectedUser.id_usuario);
+      setShowSetDefaultUserModal(false);
+    } catch (error) {
+      console.error('Error setting default user:', error);
+    }
   };
 
   const botsChat = users.filter(user => getRoleType(user.rol) === 'Bot de Chat');
@@ -550,6 +570,20 @@ const CompanyInfo = () => {
               <Card className="user-card">
                 <div className="profile-img-container">
                   <Card.Img variant="top" src={`${process.env.REACT_APP_API_URL}${user.link_foto}`} className="profile-img" />
+                  {defaultUser === user.id_usuario ? (
+                    <StarFill className="default-user-icon" />
+                  ) : (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Seleccionar usuario como predeterminado para recibir mensajes</Tooltip>}
+                    >
+                      <input
+                        type="checkbox"
+                        className="set-default-checkbox"
+                        onClick={() => { setSelectedUser(user); setShowSetDefaultUserModal(true); }}
+                      />
+                    </OverlayTrigger>
+                  )}
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
@@ -582,6 +616,20 @@ const CompanyInfo = () => {
               <Card className="user-card">
                 <div className="bot-icon-container text-center">
                   <Robot color="grey" size={100} />
+                  {defaultUser === user.id_usuario ? (
+                    <StarFill className="default-user-icon" />
+                  ) : (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Seleccionar usuario como predeterminado para recibir mensajes</Tooltip>}
+                    >
+                      <input
+                        type="checkbox"
+                        className="set-default-checkbox"
+                        onClick={() => { setSelectedUser(user); setShowSetDefaultUserModal(true); }}
+                      />
+                    </OverlayTrigger>
+                  )}
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
@@ -610,6 +658,20 @@ const CompanyInfo = () => {
               <Card className="user-card">
                 <div className="bot-icon-container text-center">
                   <Robot color="grey" size={100} />
+                  {defaultUser === user.id_usuario ? (
+                    <StarFill className="default-user-icon" />
+                  ) : (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Seleccionar usuario como predeterminado para recibir mensajes</Tooltip>}
+                    >
+                      <input
+                        type="checkbox"
+                        className="set-default-checkbox"
+                        onClick={() => { setSelectedUser(user); setShowSetDefaultUserModal(true); }}
+                      />
+                    </OverlayTrigger>
+                  )}
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
@@ -638,6 +700,20 @@ const CompanyInfo = () => {
               <Card className="user-card">
                 <div className="bot-icon-container text-center">
                   <Robot color="grey" size={100} />
+                  {defaultUser === user.id_usuario ? (
+                    <StarFill className="default-user-icon" />
+                  ) : (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Seleccionar usuario como predeterminado para recibir mensajes</Tooltip>}
+                    >
+                      <input
+                        type="checkbox"
+                        className="set-default-checkbox"
+                        onClick={() => { setSelectedUser(user); setShowSetDefaultUserModal(true); }}
+                      />
+                    </OverlayTrigger>
+                  )}
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
@@ -839,6 +915,23 @@ const CompanyInfo = () => {
           setDepartments(updatedDepartments);
         }}
       />
+
+      <Modal show={showSetDefaultUserModal} onHide={() => setShowSetDefaultUserModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {defaultUser && users.find(user => user.id_usuario === defaultUser) ? (
+            <p>¿Seguro que quieres seleccionar a {selectedUser?.nombre} {selectedUser?.apellido} como el usuario predeterminado para recibir los mensajes? Actualmente, el usuario predeterminado es {users.find(user => user.id_usuario === defaultUser).nombre} {users.find(user => user.id_usuario === defaultUser).apellido}.</p>
+          ) : (
+            <p>¿Seguro que quieres seleccionar a {selectedUser?.nombre} {selectedUser?.apellido} como el usuario predeterminado para recibir los mensajes?</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowSetDefaultUserModal(false)}>Cancelar</Button>
+          <Button variant="primary" onClick={handleSetDefaultUser}>Confirmar</Button>
+        </Modal.Footer>
+      </Modal>
 
     </div>
   );
