@@ -43,6 +43,7 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
   const [allUsers, setAllUsers] = useState([]);
   const [userPrivileges, setUserPrivileges] = useState([]);
   const [phases, setPhases] = useState({});
+  const [defaultUser, setDefaultUser] = useState(null);
 
   const loadMessages = async (conversationId, offset = 0) => {
     setLoading(true);
@@ -85,6 +86,25 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
     });
   };
 
+  const handleEndConversation = async (conversationId) => {
+    const companyId = localStorage.getItem("company_id");
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/end-conversation`, {
+        conversationId: conversationId,
+        companyId: companyId
+      });
+      console.log('Conversación finalizada exitosamente:', response.data);
+      
+      const defaultUserResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/default-user/${companyId}`);
+      const defaultUserId = defaultUserResponse.data.id_usuario;
+      setDefaultUser(defaultUserId);
+      
+      handleResponsibleChange(defaultUserId, currentConversation.id_usuario);
+    } catch (error) {
+      console.error('Error al finalizar la conversación:', error);
+    }
+  };
+  
   useEffect(() => {
     const roleId = localStorage.getItem("user_role");
     const companyId = localStorage.getItem("company_id");
@@ -503,6 +523,7 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
       updateContact,
       allUsers,
       handleResponsibleChange,
+      handleEndConversation,
       phases
     }}>
       {children}

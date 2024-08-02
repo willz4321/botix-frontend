@@ -64,6 +64,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+  display: inline-block;
 }
 
 .profile-img {
@@ -102,3 +103,27 @@
 .counter p {
   margin: 5px 0;
 }
+
+.set-default-checkbox {
+  position: absolute;
+  top: 10px; /* Ajusta el valor según sea necesario */
+  right: 10px; /* Ajusta el valor según sea necesario */
+  z-index: 10;
+}
+
+.default-user-icon {
+  position: absolute;
+  top: 10px; /* Ajusta el valor según sea necesario */
+  right: 10px; /* Ajusta el valor según sea necesario */
+  z-index: 10;
+  color: gold; /* Cambia el color de la estrella si es necesario */
+}
+
+.copy-button {
+  height: 45px; /* Ajusta este valor si es necesario */
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

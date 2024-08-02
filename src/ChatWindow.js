@@ -14,7 +14,7 @@ import { usePopper } from 'react-popper';
 import TemplateModal from './TemplateModal';
 
 function ChatWindow() {
-  const { currentConversation, messages, loadMessages, socket, isConnected, setMessages, setCurrentConversation, updateContact, allUsers, handleResponsibleChange, phases } = useConversations();
+  const { currentConversation, messages, loadMessages, socket, isConnected, setMessages, setCurrentConversation, updateContact, allUsers, handleResponsibleChange, handleEndConversation, phases } = useConversations();
   const messagesEndRef = useRef(null);
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState(null);
@@ -142,7 +142,7 @@ function ChatWindow() {
               </DropdownButton>
             </div>
             <div className="d-flex align-items-center">
-              <div className="responsable mr-3">
+            <div className="responsable mr-3">
                 <strong>Responsable: </strong>
                 <span>{`${currentConversation.responsable_nombre} ${currentConversation.responsable_apellido}` || 'No asignado'}</span>
                 <DropdownButton className="custom-dropdown" title="" variant="light">
@@ -153,6 +153,12 @@ function ChatWindow() {
                       {user.nombre} {user.apellido}
                     </Dropdown.Item>
                   ))}
+                  <hr></hr>
+                  <Dropdown.Item  className='text-danger'
+                    key="finalizar-conversacion" 
+                    onClick={() => handleEndConversation(currentConversation.conversation_id)}>
+                    Finalizar Conversación
+                  </Dropdown.Item>
                 </DropdownButton>
               </div>
               <div className="icons-profile ml-2">

@@ -246,6 +246,61 @@ const CreateTemplate = () => {
       }] : [])
     ];
   
+    const componentsWithSourceAndVariable = [
+      ...(headerType === 'text' ? [{
+        type: 'HEADER',
+        format: 'TEXT',
+        text: headerText,
+        example: headerVariableAdded ? { header_text: headerExampleArray } : undefined,
+        source: headerVariableAdded ? headerSourceArray : undefined,
+        variable: headerVariableAdded ? headerVariableArray : undefined
+      }] : headerType === 'media' ? [{
+        type: 'HEADER',
+        format: mediaType.toUpperCase(),
+        example: { header_handle: [headerImageUrl || headerVideoUrl || headerDocumentUrl] }
+      }] : headerType === 'location' ? [{
+        type: 'HEADER',
+        format: 'LOCATION'
+      }] : []),
+      {
+        type: 'BODY',
+        text: bodyText,
+        example: bodyExampleArray.length > 0 ? { body_text: [bodyExampleArray] } : undefined,
+        source: bodySourceArray.length > 0 ? bodySourceArray : undefined,
+        variable: bodyVariableArray.length > 0 ? bodyVariableArray : undefined
+      },
+      ...(footerText ? [{
+        type: 'FOOTER',
+        text: footerText
+      }] : []),
+      ...(buttons.length > 0 ? [{
+        type: 'BUTTONS',
+        buttons: buttons.map(button => {
+          if (button.type === 'QUICK_REPLY') {
+            return {
+              type: 'QUICK_REPLY',
+              text: button.text
+            };
+          } else if (button.type === 'PHONE_NUMBER') {
+            return {
+              type: 'PHONE_NUMBER',
+              text: button.text,
+              phone_number: `${button.phoneCode}${button.phoneNumber}`
+            };
+          } else if (button.type === 'URL') {
+            return {
+              type: 'URL',
+              text: button.text,
+              url: button.url,
+              example: button.urlType === 'dynamic' ? { url_text: button.urlExample } : undefined,
+            };
+          } else {
+            return null;
+          }
+        }).filter(Boolean)
+      }] : [])
+    ];
+  
     const companyId = localStorage.getItem('company_id');
   
     const templateData = {
@@ -253,6 +308,7 @@ const CreateTemplate = () => {
       language,
       category: category.toUpperCase(),
       components,
+      componentsWithSourceAndVariable,
       company_id: companyId,
       ...(customValidity ? { validity_period: validityPeriod } : {})
     };
@@ -291,7 +347,7 @@ const CreateTemplate = () => {
       setLoading(false);
       setShowModal(true);
     }
-  };   
+  }; 
 
   const resetForm = () => {
     setCategory('Marketing');
@@ -482,7 +538,7 @@ const CreateTemplate = () => {
       .replace(/_(.*?)_/g, '<em>$1</em>') // Itálica
       .replace(/~(.*?)~/g, '<del>$1</del>') // Tachado
       .replace(/`(.*?)`/g, '<code class="text-black">$1</code>'); // Monospaciado
-    
+
     return formattedText.replace(/\n/g, '<br>'); // Reemplazar saltos de línea con <br>
   };
 
@@ -496,19 +552,19 @@ const CreateTemplate = () => {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
-  
+
     const beforeText = text.slice(0, start);
     const selectedText = text.slice(start, end);
     const afterText = text.slice(end);
-  
+
     const beforeSpaces = selectedText.match(/^\s*/)[0];
     const afterSpaces = selectedText.match(/\s*$/)[0];
     const trimmedText = selectedText.trim();
-  
+
     let formattedText;
     let formatChar;
     let regex;
-  
+
     switch (formatType) {
       case 'bold':
         formatChar = '*';
@@ -530,7 +586,7 @@ const CreateTemplate = () => {
         formatChar = '';
         regex = null;
     }
-  
+
     if (regex && regex.test(text)) {
       // Eliminar formato
       formattedText = text.replace(regex, trimmedText);
@@ -538,99 +594,99 @@ const CreateTemplate = () => {
       // Aplicar formato
       formattedText = `${beforeText}${beforeSpaces}${formatChar}${trimmedText}${formatChar}${afterSpaces}${afterText}`;
     }
-  
+
     setBodyText(formattedText);
-  
+
     const newPosition = beforeText.length + beforeSpaces.length + trimmedText.length + 2; // +2 for the format characters
     textarea.focus();
     textarea.setSelectionRange(newPosition, newPosition);
-  };  
+  };
 
   const urlButtonsCount = buttons.filter(button => button.type === 'URL').length;
   const phoneButtonsCount = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
-  
+
   const addButton = (type) => {
     const urlButtons = buttons.filter(button => button.type === 'URL').length;
     const phoneButtons = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
-  
+
     if (buttons.length >= 10) {
       alert('No puedes agregar más de 10 botones.');
       return;
     }
-  
+
     if (type === 'URL' && urlButtons >= 2) {
       alert('No puedes agregar más de 2 botones de tipo URL.');
       return;
     }
-  
+
     if (type === 'PHONE_NUMBER' && phoneButtons >= 1) {
       alert('No puedes agregar más de 1 botón de tipo Número de Teléfono.');
       return;
     }
-  
+
     setButtons([...buttons, { type: 'none', text: '', phoneCode: '', phoneNumber: '', url: '', urlType: 'static', urlExample: '' }]);
-  };  
+  };
 
   const handleButtonTypeChange = (index, type) => {
     const urlButtons = buttons.filter(button => button.type === 'URL').length;
     const phoneButtons = buttons.filter(button => button.type === 'PHONE_NUMBER').length;
-  
+
     if (type === 'URL' && urlButtons >= 2) {
       alert('No puedes agregar más de 2 botones de tipo URL.');
       return;
     }
-  
+
     if (type === 'PHONE_NUMBER' && phoneButtons >= 1) {
       alert('No puedes agregar más de 1 botón de tipo Número de Teléfono.');
       return;
     }
-  
+
     const newButtons = [...buttons];
     newButtons[index].type = type;
     setButtons(newButtons);
   };
-  
+
   const handleButtonTextChange = (index, text) => {
     const newButtons = [...buttons];
     newButtons[index].text = text;
     setButtons(newButtons);
   };
-  
+
   const handleButtonPhoneCodeChange = (index, phoneCode) => {
     const newButtons = [...buttons];
     newButtons[index].phoneCode = phoneCode;
     setButtons(newButtons);
   };
-  
+
   const handleButtonPhoneNumberChange = (index, phoneNumber) => {
     const newButtons = [...buttons];
     newButtons[index].phoneNumber = phoneNumber;
     setButtons(newButtons);
   };
-  
+
   const handleButtonUrlChange = (index, url) => {
     const newButtons = [...buttons];
     newButtons[index].url = url;
     setButtons(newButtons);
   };
-  
+
   const handleButtonUrlTypeChange = (index, urlType) => {
     const newButtons = [...buttons];
     newButtons[index].urlType = urlType;
     setButtons(newButtons);
   };
-  
+
   const handleButtonUrlExampleChange = (index, urlExample) => {
     const newButtons = [...buttons];
     newButtons[index].urlExample = urlExample;
     setButtons(newButtons);
   };
-  
+
   const removeButton = (index) => {
     const newButtons = buttons.filter((_, i) => i !== index);
     setButtons(newButtons);
   };
-  
+
 
   return (
     <Container fluid>
@@ -684,7 +740,7 @@ const CreateTemplate = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col xs={12} md={6} className='edit_template' style={{height: '100dvh', overflowY: 'auto'}}>
+          <Col xs={12} md={6} className='edit_template' style={{ height: '100dvh', overflowY: 'auto' }}>
             <h3 className="text-center">Editar Plantilla</h3>
             <br></br>
             <Form.Group className="mb-3">
@@ -749,11 +805,11 @@ const CreateTemplate = () => {
                               <option key={variable.value} value={variable.value}>{variable.name}</option>
                             ))}
                           </Form.Select>
-                        </Form.Group> 
+                        </Form.Group>
                       </Col>
-                    
+
                     </Row>
-                    
+
                     <div className="text-end">
                       <button className='btn btn-link text-decoration-none text-danger' onClick={removeHeaderVariable}>
                         Eliminar variable
@@ -815,10 +871,10 @@ const CreateTemplate = () => {
               />
               <div className="mt-2 d-flex justify-content-between">
                 <ButtonGroup>
-                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Negrita" onClick={() => applyFormat('bold')}><TypeBold /></Button>
-                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Itálica" onClick={() => applyFormat('italic')}><TypeItalic /></Button>
-                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Tachado" onClick={() => applyFormat('strikethrough')}><TypeStrikethrough /></Button>
-                  <Button variant="outline-secondary" size="icon" style={{height: '40px'}} title="Monospace" onClick={() => applyFormat('monospace')}><Code /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{ height: '40px' }} title="Negrita" onClick={() => applyFormat('bold')}><TypeBold /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{ height: '40px' }} title="Itálica" onClick={() => applyFormat('italic')}><TypeItalic /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{ height: '40px' }} title="Tachado" onClick={() => applyFormat('strikethrough')}><TypeStrikethrough /></Button>
+                  <Button variant="outline-secondary" size="icon" style={{ height: '40px' }} title="Monospace" onClick={() => applyFormat('monospace')}><Code /></Button>
                 </ButtonGroup>
                 <Button className='w-auto px-4' variant="secondary" onClick={addBodyVariable}>
                   Agregar variable
@@ -876,7 +932,7 @@ const CreateTemplate = () => {
               <Form.Control type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} />
             </Form.Group>
             {buttons.map((button, index) => (
-              <div key={index} className="button-group p-4 rounded mb-3" style={{border: 'dashed 1px gray'}}>
+              <div key={index} className="button-group p-4 rounded mb-3" style={{ border: 'dashed 1px gray' }}>
                 <Form.Group className="mb-3">
                   <Form.Label>Tipo de Botón:</Form.Label>
                   <Form.Select value={button.type} onChange={(e) => handleButtonTypeChange(index, e.target.value)}>
@@ -999,9 +1055,9 @@ const CreateTemplate = () => {
                     {headerType === 'media' && mediaType === 'video' && headerVideoUrl && <video src={`${process.env.REACT_APP_API_URL}${headerVideoUrl}`} controls style={{ width: '100%' }} />}
                     {headerType === 'media' && mediaType === 'document' && headerDocumentUrl && (
                       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        <iframe 
-                          src={`${process.env.REACT_APP_API_URL}${headerDocumentUrl}`} 
-                          style={{ width: '100%', aspectRatio: '4/3', zoom: 2, border: '0', overflow: 'hidden' }} 
+                        <iframe
+                          src={`${process.env.REACT_APP_API_URL}${headerDocumentUrl}`}
+                          style={{ width: '100%', aspectRatio: '4/3', zoom: 2, border: '0', overflow: 'hidden' }}
                           frameBorder="0"
                         ></iframe>
                       </div>

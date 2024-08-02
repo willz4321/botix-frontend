@@ -75,7 +75,7 @@ const Register = () => {
         automations: 1,
         ai_messages: 0,
         ai_analysis: 0,
-        bot_messages: 0,
+        bot_messages: 2,
       },
       standard: {
         type: "Standard",
@@ -85,7 +85,7 @@ const Register = () => {
         automations: 3,
         ai_messages: 0,
         ai_analysis: 0,
-        bot_messages: 0,
+        bot_messages: 4,
       },
       pro: {
         type: "Pro",
@@ -95,7 +95,7 @@ const Register = () => {
         automations: 6,
         ai_messages: 0,
         ai_analysis: 0,
-        bot_messages: 0,
+        bot_messages: 10,
       }
     };
 

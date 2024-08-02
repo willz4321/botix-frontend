@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Modal, Button, Form, Card, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Person, PencilSquare, GeoAlt, Building, Telephone, Envelope, Robot, Puzzle, Globe, People, PlusCircle, Diagram2, Shuffle, Briefcase, Diagram3, Eye, Whatsapp, Instagram, Facebook, Telegram, StarFill } from 'react-bootstrap-icons';
+import { Person, PencilSquare, GeoAlt, Building, Telephone, Envelope, Robot, Puzzle, Globe, People, PlusCircle, Diagram2, Shuffle, Briefcase, Diagram3, Eye, Whatsapp, Instagram, Facebook, Telegram, StarFill, Clipboard } from 'react-bootstrap-icons';
 import './CompanyInfo.css';
 import CreateUserModal from './createUserModal';
 import CreateContactModal from './CreateContactModal';
@@ -10,7 +10,18 @@ import CreateOrganizationModal from './CreateOrganizationModal';
 import CreateRoleModal from './CreateRoleModal';
 import CreateDepartmentModal from './CreateDepartmentModal';
 import DepartmentPhasesModal from './DepartmentPhasesModal';
-import CreateIntegrationModal from './CreateIntegrationModal'; 
+import CreateIntegrationModal from './CreateIntegrationModal';
+import EditChatBotModal from './EditChatBotModal';
+
+const generatePassword = () => {
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=';
+  let password = '';
+  for (let i = 0; i < 100; i++) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    password += charset[randomIndex];
+  }
+  return password;
+};
 
 const CompanyInfo = () => {
   const [companyData, setCompanyData] = useState({});
@@ -27,8 +38,11 @@ const CompanyInfo = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showSetDefaultUserModal, setShowSetDefaultUserModal] = useState(false);
+  const [showCreateBotModal, setShowCreateBotModal] = useState(false); // New state for bot creation modal
+  const [botType, setBotType] = useState(''); // New state for bot type
   const [formData, setFormData] = useState({});
   const [userData, setUserData] = useState({});
+  const [botData, setBotData] = useState({ primaryName: '', secondaryName: '', email: '', password: '' });
   const [logoFile, setLogoFile] = useState(null);
   const [profileFile, setProfileFile] = useState(null);
   const [users, setUsers] = useState([]);
@@ -45,6 +59,34 @@ const CompanyInfo = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const companyId = localStorage.getItem('company_id');
   const userId = localStorage.getItem('user_id');
+  const [showViewBotModal, setShowViewBotModal] = useState(false); // Estado para el modal de ver bot
+  const [selectedBot, setSelectedBot] = useState(null); // Estado para el bot seleccionado
+  const [chatBots, setBotsChat] = useState([]);
+  const [showEditBotModal, setShowEditBotModal] = useState(false);
+
+  const handleViewBotClick = (bot) => {
+    setSelectedBot(bot);
+    setShowViewBotModal(true);
+  };
+
+  const handleCopyText = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const handleEditBotClick = async (bot) => {
+    try {
+      const botResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/bots/${bot.id_usuario}`);
+      setSelectedBot(botResponse.data);
+      setShowEditBotModal(true);
+    } catch (error) {
+      console.error('Error fetching bot details:', error);
+    }
+  };
+
+  const handleCloseEditBotModal = () => {
+    setShowEditBotModal(false);
+    setSelectedBot(null);
+  };
 
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -250,9 +292,10 @@ const CompanyInfo = () => {
 
   const handleSetDefaultUser = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/change-default-user`, {
-        id_usuario: selectedUser.id_usuario,
-        company_id: companyId
+      console.log('Setting default user:', selectedUser.id_usuario, 'for company:', companyId);
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/change-default-user`, {
+        companyId: companyId,
+        userId: selectedUser.id_usuario
       });
       setDefaultUser(selectedUser.id_usuario);
       setShowSetDefaultUserModal(false);
@@ -260,6 +303,49 @@ const CompanyInfo = () => {
       console.error('Error setting default user:', error);
     }
   };
+
+  const handleCreateBotClick = (type) => {
+    setBotType(type);
+    setShowCreateBotModal(true);
+  };
+
+  const handleBotDataChange = (e) => {
+    const { name, value } = e.target;
+    const updatedBotData = { ...botData, [name]: value };
+
+    if (name === 'primaryName' || name === 'secondaryName') {
+      const cleanedPrimaryName = updatedBotData.primaryName.replace(/\s+/g, '');
+      const cleanedSecondaryName = updatedBotData.secondaryName.replace(/\s+/g, '');
+      const cleanedCompanyName = companyData.name.replace(/\s+/g, '');
+      updatedBotData.email = `${cleanedPrimaryName}.${cleanedSecondaryName}@${cleanedCompanyName}.botix`.toLowerCase();
+      updatedBotData.password = generatePassword();
+    }
+
+    setBotData(updatedBotData);
+  };
+
+  const handleCopyPassword = () => {
+    navigator.clipboard.writeText(botData.password);
+  };
+
+  const handleBotFormSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register-bot`, {
+        id_usuario: Math.floor(Math.random() * 1000000), // Generar un ID de usuario único
+        nombre: botData.primaryName,
+        apellido: botData.secondaryName,
+        email: botData.email,
+        contraseña: botData.password,
+        company_id: companyId,
+        tipoBot: botType
+      });
+      setShowCreateBotModal(false);
+    } catch (error) {
+      console.error('Error creating bot:', error);
+    }
+  };
+  
 
   const botsChat = users.filter(user => getRoleType(user.rol) === 'Bot de Chat');
   const botsChatAI = users.filter(user => getRoleType(user.rol) === 'Bot de Chat IA');
@@ -343,7 +429,7 @@ const CompanyInfo = () => {
           <h5>Bots de Chat</h5>
           <p>{botsChat.length} / {license.bot_messages}</p>
           {(canCreateUsers || admin) && botsChat.length < license.bot_messages && (
-            <Button variant="primary" onClick={handleCreateUserClick}>
+            <Button variant="primary" onClick={() => handleCreateBotClick('Bot de Chat')}>
               <PlusCircle /> Crear Bot
             </Button>
           )}
@@ -359,7 +445,7 @@ const CompanyInfo = () => {
           <h5>Bots de Chat IA</h5>
           <p>{botsChatAI.length} / {license.ai_messages}</p>
           {(canCreateUsers || admin) && botsChatAI.length < license.ai_messages && (
-            <Button variant="primary" onClick={handleCreateUserClick}>
+            <Button variant="primary" onClick={() => handleCreateBotClick('Bot de Chat IA')}>
               <PlusCircle /> Crear Bot
             </Button>
           )}
@@ -375,7 +461,7 @@ const CompanyInfo = () => {
           <h5>Bots de Gestión</h5>
           <p>{botsUsers.length} / {license.ai_analysis}</p>
           {(canCreateUsers || admin) && botsUsers.length < license.ai_analysis && (
-            <Button variant="primary" onClick={handleCreateUserClick}>
+            <Button variant="primary" onClick={() => handleCreateBotClick('Bot de Gestión')}>
               <PlusCircle /> Crear Bot
             </Button>
           )}
@@ -609,6 +695,7 @@ const CompanyInfo = () => {
             </Col>
           ))}
         </Row>
+        <br></br>
         <h3>Bots de Chat</h3>
         <Row>
           {botsChat.map(user => (
@@ -633,11 +720,11 @@ const CompanyInfo = () => {
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
-                  <Button variant="primary" className="w-100 mb-2" onClick={() => handleEditUserClick(user)}>
+                  <Button variant="primary" className="w-100 mb-2" onClick={() => handleViewBotClick(user)}>
                     Ver
                   </Button>
                   {(canEditUsers || admin) && (
-                    <Button variant="dark" className="w-100 mb-2" onClick={() => handleEditUserClick(user)}>
+                    <Button variant="dark" className="w-100 mb-2" onClick={() => handleEditBotClick(user)}>
                       Editar Bot
                     </Button>
                   )}
@@ -651,6 +738,7 @@ const CompanyInfo = () => {
             </Col>
           ))}
         </Row>
+        <br></br>
         <h3>Bots de Chat IA</h3>
         <Row>
           {botsChatAI.map(user => (
@@ -675,7 +763,7 @@ const CompanyInfo = () => {
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
-                  <Button variant="primary" className="w-100 mb-2" onClick={() => handleEditUserClick(user)}>
+                  <Button variant="primary" className="w-100 mb-2" onClick={() => handleViewBotClick(user)}>
                     Ver
                   </Button>
                   {(canEditUsers || admin) && (
@@ -693,6 +781,7 @@ const CompanyInfo = () => {
             </Col>
           ))}
         </Row>
+        <br></br>
         <h3>Bots de Gestión</h3>
         <Row>
           {botsUsers.map(user => (
@@ -717,7 +806,7 @@ const CompanyInfo = () => {
                 </div>
                 <Card.Body className="text-center">
                   <Card.Title>{user.nombre} {user.apellido}</Card.Title>
-                  <Button variant="primary" className="w-100 mb-2" onClick={() => handleEditUserClick(user)}>
+                  <Button variant="primary" className="w-100 mb-2" onClick={() => handleViewBotClick(user)}>
                     Ver
                   </Button>
                   {(canEditUsers || admin) && (
@@ -932,6 +1021,120 @@ const CompanyInfo = () => {
           <Button variant="primary" onClick={handleSetDefaultUser}>Confirmar</Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal para crear bot */}
+      <Modal show={showCreateBotModal} onHide={() => setShowCreateBotModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Crear Bot</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleBotFormSubmit}>
+            <Form.Group controlId="formBotPrimaryName">
+              <Form.Label>Nombre Principal</Form.Label>
+              <Form.Control
+                type="text"
+                name="primaryName"
+                value={botData.primaryName}
+                onChange={handleBotDataChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formBotSecondaryName">
+              <Form.Label>Nombre Secundario</Form.Label>
+              <Form.Control
+                type="text"
+                name="secondaryName"
+                value={botData.secondaryName}
+                onChange={handleBotDataChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formBotEmail">
+              <Form.Label>Email</Form.Label>
+              <div className="d-flex">
+                <Form.Control
+                  type="email"
+                  name="email"
+                  value={botData.email}
+                  readOnly
+                />
+                <Button variant="outline-secondary" className="copy-button" onClick={() => navigator.clipboard.writeText(botData.email)}>
+                  <Clipboard />
+                </Button>
+              </div>
+            </Form.Group>
+            <Form.Group controlId="formBotPassword">
+              <Form.Label>Contraseña</Form.Label>
+              <div className="d-flex">
+                <Form.Control
+                  type="text"
+                  name="password"
+                  value={botData.password}
+                  readOnly
+                />
+                <Button variant="outline-secondary" className="copy-button" onClick={handleCopyPassword}>
+                  <Clipboard />
+                </Button>
+              </div>
+            </Form.Group>
+            <Button variant="primary" type="submit">
+              Crear Bot
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showViewBotModal} onHide={() => setShowViewBotModal(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>Ver Bot de Chat</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {selectedBot && (
+          <Form>
+            <Form.Group controlId="formBotPrimaryName">
+              <Form.Label>Nombre Principal</Form.Label>
+              <Form.Control
+                type="text"
+                name="primaryName"
+                value={selectedBot.nombre}
+                readOnly
+              />
+            </Form.Group>
+            <Form.Group controlId="formBotSecondaryName">
+              <Form.Label>Nombre Secundario</Form.Label>
+              <Form.Control
+                type="text"
+                name="secondaryName"
+                value={selectedBot.apellido}
+                readOnly
+              />
+            </Form.Group>
+            <Form.Group controlId="formBotEmail">
+              <Form.Label>Email</Form.Label>
+              <div className="d-flex">
+                <Form.Control
+                  type="email"
+                  name="email"
+                  value={selectedBot.email}
+                  readOnly
+                />
+                <Button variant="outline-secondary" className="copy-button" onClick={() => handleCopyText(selectedBot.email)}>
+                  <Clipboard />
+                </Button>
+              </div>
+            </Form.Group>
+          </Form>
+        )}
+      </Modal.Body>
+    </Modal>
+
+    {selectedBot && (
+        <EditChatBotModal
+          show={showEditBotModal}
+          handleClose={handleCloseEditBotModal}
+          bot={selectedBot}
+        />
+      )}
 
     </div>
   );

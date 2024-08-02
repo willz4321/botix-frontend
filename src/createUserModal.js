@@ -32,7 +32,7 @@ const CreateUserModal = ({ show, onHide, companyId, roles, departments, onUserCr
     };
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, newUser);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register-user`, newUser);
       onUserCreated(response.data);
       onHide();
     } catch (error) {
