@@ -1,0 +1,72 @@
+.custom-dropdown-toggle>button::after {
+  display: none;
+}
+
+.campaigns-container {
+    position: relative;
+    padding-top: 20px;
+  }
+  
+  .btn-create-template {
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+  
+  .templates-list-column, .preview-column {
+    height: 42.5vh;
+  }
+
+  .preview-column{
+    overflow-y: auto;
+    height: 50vh;
+  }
+  
+  .templates-list {
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .preview-container {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+  
+  .whatsapp-preview {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #e9f7ef;
+  }
+  
+  .message {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #fff;
+  }
+  
+  .header, .body, .footer {
+    margin-bottom: 10px;
+  }
+  
+  .footer {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  .buttons button {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+    border: none;
+    background-color: #25d366;
+    color: #fff;
+    border-radius: 5px;
+  }
+  
+  

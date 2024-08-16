@@ -1,0 +1,89 @@
+.Favicon {
+    width: 60px;
+}
+
+.botix_nav {
+    color: white;
+    background-color: black;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: center;
+}
+
+.navbar-collapse {
+    flex-grow: 0;
+}
+
+.nav-options {
+    display: flex;
+}
+
+.options_nav {
+    color: white;
+    margin: 0 20px;
+}
+
+.options_nav:hover {
+    color: #D033B9;
+}
+
+.content-section {
+    margin-top: 20px;
+}
+
+.text-column {
+    text-align: left;
+    padding: 20px;
+    position: relative;
+}
+
+.main-heading {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.sub-heading {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+}
+
+.cta-button {
+    background-color: #D033B9;
+    border: none;
+    color: white;
+    position: absolute;
+    font-size: 1.4vw;
+    top: 80%;
+    left: 30%;
+    transform: translate(-50%, -50%);
+    width: fit-content;
+    padding: 10px 20px;
+}
+
+.cta-button:hover {
+    background-color: #B02B96;
+}
+
+.image-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.responsive-image {
+    max-width: 100%;
+    height: auto;
+}
+
+
+.img-full-width {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 0;
+  }
+  
+  

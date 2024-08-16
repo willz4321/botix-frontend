@@ -1,0 +1,15 @@
+/* CustomModal.css */
+.modal-header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .modal-title {
+    display: flex;
+    align-items: center;
+  }
+  
+  .modal-title img {
+    margin-right: 10px;
+  }
+  
