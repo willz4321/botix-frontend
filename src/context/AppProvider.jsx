@@ -11,7 +11,6 @@ export const AppProvider = ({ children }) => {
   });
 
   const setConversacionActual = (conversacion_Actual) => {
-    console.log('Actualizando conversacion_Actual:', conversacion_Actual); // Para depuración
     setState((prevState) => ({ ...prevState, conversacion_Actual }));
   };
   const setStatus = (status) => setState((prevState) => ({ ...prevState, status }));

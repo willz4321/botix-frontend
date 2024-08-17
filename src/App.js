@@ -112,13 +112,12 @@ function App() {
               <Routes>
                 <Route path="/login" element={
                   <PublicRoute>
-                    <div>Login Component</div> {/* Replace with your Login component */}
+                    <div>Login Component</div>
                   </PublicRoute>
                 } />
                       <Route path="/chats" element={
                         <PrivateRoute>
                           <>
-                            {/* Sidebar */}
                             {isMobile && (
                               state.conversacion_Actual.conversation_id ? (
                                 <>
@@ -132,7 +131,6 @@ function App() {
                                   >
                                     Atrás
                                   </Button> */}
-                                  {/* Mostrar ChatWindow solo en móvil cuando hay una conversación actual */}
                                   <Col className="px-0 wallpaper_messages" style={{ flexBasis: '100%' }}>
                                     <ChatWindow socket={socket} />
                                   </Col>
@@ -144,7 +142,6 @@ function App() {
                               )
 
                             )} 
-                            {/* Mostrar ambos componentes en pantallas más grandes */}
                             <Col className="px-0 conversations_bar d-none d-md-block" style={{ flexBasis: '25%' }}>
                               <Sidebar />
                             </Col>

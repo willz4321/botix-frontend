@@ -321,10 +321,7 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
         const isCurrentActive = currentConversation && currentConversation.conversation_id === newMessage.conversationId;
   
         if (isCurrentActive) {
-          console.log('Actualizando la conversación actual con el nuevo mensaje.');
           resetUnreadMessages(newMessage.conversationId);
-            console.log(newMessage)
-            console.log(newMessage.timestamp)
           setCurrentConversation(prev => ({
             ...prev,
             last_message: newMessage.text,
@@ -342,6 +339,7 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/conversations/${newMessage.conversationId}`);
             const newConversation = response.data;
             if (newConversation) {
+              console.log("Datos de supuesto mensaje:", newConversation)
               setConversations(prevConversations => {
                 const updatedConversations = [...prevConversations, newConversation];
                 return Array.from(new Set(updatedConversations.map(convo => convo.conversation_id)))
@@ -513,9 +511,9 @@ export const ConversationsProvider = ({ children, socket, userHasInteracted }) =
 
     fetchUsers();
   }, []);
-
+   
   return (
-    !conversations ? (
+    conversations.length == 0 ? (
         <div className="d-flex justify-content-center align-items-center vh-100">
           <div className="text-center">
             <Spinner animation="border" variant="success" role="status">

@@ -51,6 +51,7 @@ function ChatWindow() {
   }, [isConnected]);
 
   useEffect(() => {
+ 
     if (!socket) return;
     const newMessageHandler = (newMessage) => {
       console.log('Nuevo mensaje recibido:', newMessage);
@@ -75,7 +76,7 @@ function ChatWindow() {
     return () => {
       socket.off('newMessage', newMessageHandler);
     };
-  }, [socket, currentConversation, setMessages, setCurrentConversation]);
+  }, [socket, currentConversation, setMessages, setCurrentConversation, setCurrentMessage]);
 
   const handleEditContactChange = (event) => {
     const { name, value } = event.target;
@@ -410,28 +411,45 @@ function ChatWindow() {
 
     const handleSendMessage = async () => {
       if (!currentConversation || !messageText.trim()) return;
+    
       const textToSend = messageText;
-      setMessageText(''); 
-     var  currentSend = {
+      console.log("Texto a enviar:", textToSend);
+    
+      setMessageText('');
+    
+      var currentSend = {
         ...currentConversation,
         last_message_time: new Date().toISOString()
-      }
+      };
+    
+      console.log("Datos de currentSend:", currentSend);
     
       try {
+        setConversacionActual({...currentSend, position_scroll: false})
+        console.log("Intentando enviar mensaje...");
         const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/messages/send-text`, {
           phone: currentSend.phone_number,
           messageText: textToSend,
           conversationId: currentSend.conversation_id
         });
-        console.log('Message sent successfully:', response.data);
-        setMessages(prevMessages => ({
-          ...prevMessages,
-          [currentSend.conversation_id]: [...prevMessages[currentSend.conversation_id], response.data.data]
-        }));
+    
+        console.log('Respuesta recibida:', response);
+    
+        if (response.data) {
+          console.log('Message sent successfullyddddddddddddddd:', response.data);
+          setMessages(prevMessages => ({
+            ...prevMessages,
+            [currentSend.conversation_id]: [...prevMessages[currentSend.conversation_id], response.data.data]
+          }));
+        } else {
+          console.log("La respuesta no tiene datos:", response);
+        }
+    
       } catch (error) {
-        console.error('Error sending message:', error);
+        console.error('Error al enviar el mensaje:', error.response ? error.response.data : error.message);
       }
     };
+    
 
     const handleKeyDown = (event) => {
       if (event.key === 'Enter' && event.shiftKey) {
@@ -765,7 +783,7 @@ function ChatWindow() {
       <div className="chat-window-container">
         <ContactInfoBar />
         <EditContactModal show={showEditModal} onHide={() => setShowEditModal(false)} contact={currentConversation} socket={socket} />
-        <div className="messages-container" ref={messagesEndRef}>
+        <div className="messages-container" ref={messagesEndRef} >
           {sortedDates.map((date) => (
             <React.Fragment key={date}>
               <div className="date-header">{formatDate(date)}</div>
