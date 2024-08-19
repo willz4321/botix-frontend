@@ -337,16 +337,30 @@ function ChatWindow() {
     }
   };
 
-  const isLastMessageOlderThan24Hours = () => {
-    if (!currentConversation || (currentMessage[currentConversation.conversation_id][0].type != "message") || currentMessage[currentConversation.conversation_id].length === 0) {
-      return false;
-    }
-    const lastMessageDate = new Date(currentConversation.last_message_time);
-    const now = new Date();
+   const isLastMessageOlderThan24Hours  =  useCallback(() => {
+      if (!currentConversation || !currentMessage[currentConversation.conversation_id] || currentMessage[currentConversation.conversation_id].length === 0) {
+        return true; // Si no hay conversación o mensajes, consideramos que han pasado más de 24 horas.
+      }
   
-    return (now - lastMessageDate) > (24 * 60 * 60 * 1000); // 24 hours in milliseconds
-  };
+      // Recorremos los mensajes de la conversación actual
+      const messages = currentMessage[currentConversation.conversation_id];
+  
+      // Buscar el primer mensaje que sea de tipo "message"
+      const firstMessage = messages.find(msg => msg.type === "message");
+  
+      // Si no hay ningún mensaje de tipo "message", asumimos que han pasado más de 24 horas
+      if (!firstMessage) {
+        return true;
+      }
+  
+      const messageDate = new Date(firstMessage.timestamp); // Asumiendo que el campo con la fecha es 'timestamp'
+      const now = new Date();
+  
+      // Retornar true si han pasado más de 24 horas desde el primer mensaje de tipo "message"
+      return (now.getTime() - messageDate.getTime()) >= (24 * 60 * 60 * 1000); // 24 horas en milisegundos
+    }, [currentConversation, currentMessage]); // Dependencias: se actualiza cuando cambian estos valores
 
+  
   const handleOpenTemplateModal = () => {
     setShowTemplateModal(true);
   };
