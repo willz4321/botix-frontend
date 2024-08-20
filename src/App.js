@@ -161,7 +161,9 @@ function App() {
                       <Route path="/settings" element={<PrivateRoute><div>Settings</div></PrivateRoute>} />
                       <Route path="/company" element={<PrivateRoute><CompanyInfo /></PrivateRoute>} />
                       <Route path="/create-template" element={<PrivateRoute><CreateTemplate /></PrivateRoute>} />
+                      <Route path="/edit-template/:id_plantilla" element={<PrivateRoute><CreateTemplate /></PrivateRoute>} />
                       <Route path="/create-campaign" element={<PrivateRoute><CreateCampaign /></PrivateRoute>} />
+                      <Route path="/create-campaign/:id_plantilla" element={<PrivateRoute><CreateCampaign /></PrivateRoute>} />
                       <Route path="*" element={<PrivateRoute><CompanyInfo /></PrivateRoute>} />
                 </Routes>
             </Row>
