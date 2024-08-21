@@ -24,14 +24,14 @@ const AudioRecorder = ({ onSend }) => {
 
     mediaRecorderRef.current.onstop = async () => {
       setIsProcessing(true);
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg; codecs=opus' });
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/aac' });
       const audioUrl = URL.createObjectURL(audioBlob);
       setAudioUrl(audioUrl);
       setAudioBlob(audioBlob);
       audioChunksRef.current = [];
       try {
         const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.ogg');
+        formData.append('audio', audioBlob, 'recording.aac');
         const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload-audio`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -79,7 +79,7 @@ const AudioRecorder = ({ onSend }) => {
 
   const handleSendAudio = () => {
     if (backendAudioUrl) {
-      onSend(backendAudioUrl, 'audio/ogg');
+      onSend(backendAudioUrl, 'audio/aac');
       deleteRecording();
     }
   };

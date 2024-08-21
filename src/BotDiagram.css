@@ -9,10 +9,6 @@
     top: 10px;
     left: 10px;
     z-index: 10;
-    background: #fff;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
   }
   
   .toolbar button {
@@ -20,4 +16,7 @@
     margin-bottom: 10px;
     width: 100%;
   }
-  
+
+  .nodeGroup{
+    z-index: 1;
+  }
