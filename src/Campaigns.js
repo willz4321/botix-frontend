@@ -178,8 +178,8 @@ export const Campaigns = () => {
   };
 
   const handleCloseDialog = () => {
-    setShowDialog(false); // Oculta el diálogo
-    setSelectedCampaign(null); // Limpia la campaña seleccionada
+    setShowDialog(false); 
+    setSelectedCampaign(null); 
   };
 
   const handleDeleteCampaignClick = async (campaignId) => {
