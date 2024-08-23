@@ -819,7 +819,6 @@ const CreateCampaign = () => {
                   </div>
                 </>
               )}
-
               {role === 'bot' && (
                 <>
                   <Form.Group className="mb-3" controlId="formBotSearch">
